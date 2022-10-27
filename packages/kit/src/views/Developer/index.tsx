@@ -2,7 +2,11 @@ import React, { useLayoutEffect, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
-import { useWindowDimensions } from 'react-native';
+import {
+  DeviceEventEmitter,
+  NativeModules,
+  useWindowDimensions,
+} from 'react-native';
 
 import {
   Box,
@@ -48,6 +52,10 @@ type NavigationProps = CompositeNavigationProp<
   NativeStackNavigationProp<HomeRoutesParams, HomeRoutes.Dev>,
   NativeStackNavigationProp<StackBasicRoutesParams, StackRoutes.Developer>
 >;
+
+const { EmbedHttpServer } = NativeModules;
+
+let isHttpResponsed = false;
 
 export const Debug = () => {
   const intl = useIntl();
@@ -250,6 +258,52 @@ export const Debug = () => {
               }}
             >
               <Typography.Body1>Log current wallet</Typography.Body1>
+            </Pressable>
+            <Pressable
+              {...pressableProps}
+              onPress={() => {
+                EmbedHttpServer.stop();
+                DeviceEventEmitter.removeAllListeners(
+                  'httpServerResponseReceived',
+                );
+              }}
+            >
+              <Typography.Body1>Stop HttpServer</Typography.Body1>
+            </Pressable>
+            <Pressable
+              {...pressableProps}
+              onPress={() => {
+                const callback = (request: {
+                  requestId: string;
+                  url: string;
+                }) => {
+                  console.log(
+                    'request >>>>>>>',
+                    request.requestId,
+                    request.url,
+                  );
+                  if (request.url === '/hello') {
+                    if (isHttpResponsed) {
+                      return;
+                    }
+                    isHttpResponsed = true;
+                    // TODO respond cause App crash
+                    EmbedHttpServer.respond(
+                      request.requestId,
+                      200,
+                      'application/json',
+                      '{"message": "OK"}',
+                    );
+                  }
+                };
+                EmbedHttpServer.start(5561, 'http_service');
+                DeviceEventEmitter.addListener(
+                  'httpServerResponseReceived',
+                  callback,
+                );
+              }}
+            >
+              <Typography.Body1>Start HttpServer</Typography.Body1>
             </Pressable>
             <Pressable
               {...pressableProps}

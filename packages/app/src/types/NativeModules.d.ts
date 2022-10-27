@@ -35,12 +35,20 @@ export interface SplashScreenManagerInterface extends NativeModule {
   show: () => void;
 }
 
+export interface EmbedHttpServerInterface extends NativeModule {
+  start: (port: number, name: string) => void;
+  stop: () => void;
+  respond: (id: string, code: number, type: string, body: string) => void;
+  getConstants: () => any;
+}
+
 export interface JPushManagerInterface extends NativeModule {
   registerNotification: () => void;
 }
 
 declare module 'react-native' {
   interface NativeModulesStatic {
+    EmbedHttpServer: EmbedHttpServerInterface;
     OKLiteManager: OKLiteManagerInterface;
     OKPermissionManager: PermissionManagerInterface;
     SplashScreenManager: SplashScreenManagerInterface;

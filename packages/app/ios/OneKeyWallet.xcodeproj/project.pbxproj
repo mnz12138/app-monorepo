@@ -40,6 +40,20 @@
 		A3294A682844472100C18DD0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A3294A672844472100C18DD0 /* AppDelegate.m */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		F44507EC289DDCE100F70EB6 /* web-embed in Resources */ = {isa = PBXBuildFile; fileRef = F44507EB289DDCE100F70EB6 /* web-embed */; };
+		F483AEE0290A81C500423430 /* EmbedHttpServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F483AEDF290A81C500423430 /* EmbedHttpServer.m */; };
+		F488B401290A6DF1002E9A21 /* WGCDWebServerResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3E5290A6DF1002E9A21 /* WGCDWebServerResponse.m */; };
+		F488B402290A6DF1002E9A21 /* WGCDWebServerConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3E8290A6DF1002E9A21 /* WGCDWebServerConnection.m */; };
+		F488B403290A6DF1002E9A21 /* WGCDWebServerFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3E9290A6DF1002E9A21 /* WGCDWebServerFunctions.m */; };
+		F488B404290A6DF1002E9A21 /* WGCDWebServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3ED290A6DF1002E9A21 /* WGCDWebServer.m */; };
+		F488B405290A6DF1002E9A21 /* WGCDWebServerRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3EE290A6DF1002E9A21 /* WGCDWebServerRequest.m */; };
+		F488B406290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3F0290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.m */; };
+		F488B407290A6DF1002E9A21 /* WGCDWebServerFileResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3F5290A6DF1002E9A21 /* WGCDWebServerFileResponse.m */; };
+		F488B408290A6DF1002E9A21 /* WGCDWebServerErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3F6290A6DF1002E9A21 /* WGCDWebServerErrorResponse.m */; };
+		F488B409290A6DF1002E9A21 /* WGCDWebServerDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3F7290A6DF1002E9A21 /* WGCDWebServerDataResponse.m */; };
+		F488B40A290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3FC290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m */; };
+		F488B40B290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3FD290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m */; };
+		F488B40C290A6DF1002E9A21 /* WGCDWebServerFileRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3FE290A6DF1002E9A21 /* WGCDWebServerFileRequest.m */; };
+		F488B40D290A6DF1002E9A21 /* WGCDWebServerDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B400290A6DF1002E9A21 /* WGCDWebServerDataRequest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -117,6 +131,36 @@
 		AB5A55C2A16742BCB8148B6E /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "OneKeyWallet/noop-file.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F44507EB289DDCE100F70EB6 /* web-embed */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "web-embed"; path = "OneKeyWallet/web-embed"; sourceTree = "<group>"; };
+		F483AEDE290A81C500423430 /* EmbedHttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmbedHttpServer.h; sourceTree = "<group>"; };
+		F483AEDF290A81C500423430 /* EmbedHttpServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmbedHttpServer.m; sourceTree = "<group>"; };
+		F488B3E3290A6DF1002E9A21 /* WGCDWebServerFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerFunctions.h; sourceTree = "<group>"; };
+		F488B3E4290A6DF1002E9A21 /* WGCDWebServerConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerConnection.h; sourceTree = "<group>"; };
+		F488B3E5290A6DF1002E9A21 /* WGCDWebServerResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerResponse.m; sourceTree = "<group>"; };
+		F488B3E6290A6DF1002E9A21 /* WGCDWebServerRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerRequest.h; sourceTree = "<group>"; };
+		F488B3E7290A6DF1002E9A21 /* WGCDWebServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServer.h; sourceTree = "<group>"; };
+		F488B3E8290A6DF1002E9A21 /* WGCDWebServerConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerConnection.m; sourceTree = "<group>"; };
+		F488B3E9290A6DF1002E9A21 /* WGCDWebServerFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerFunctions.m; sourceTree = "<group>"; };
+		F488B3EA290A6DF1002E9A21 /* WGCDWebServerResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerResponse.h; sourceTree = "<group>"; };
+		F488B3EB290A6DF1002E9A21 /* WGCDWebServerPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerPrivate.h; sourceTree = "<group>"; };
+		F488B3EC290A6DF1002E9A21 /* WGCDWebServerHTTPStatusCodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerHTTPStatusCodes.h; sourceTree = "<group>"; };
+		F488B3ED290A6DF1002E9A21 /* WGCDWebServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServer.m; sourceTree = "<group>"; };
+		F488B3EE290A6DF1002E9A21 /* WGCDWebServerRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerRequest.m; sourceTree = "<group>"; };
+		F488B3F0290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerStreamedResponse.m; sourceTree = "<group>"; };
+		F488B3F1290A6DF1002E9A21 /* WGCDWebServerFileResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerFileResponse.h; sourceTree = "<group>"; };
+		F488B3F2290A6DF1002E9A21 /* WGCDWebServerErrorResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerErrorResponse.h; sourceTree = "<group>"; };
+		F488B3F3290A6DF1002E9A21 /* WGCDWebServerDataResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerDataResponse.h; sourceTree = "<group>"; };
+		F488B3F4290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerStreamedResponse.h; sourceTree = "<group>"; };
+		F488B3F5290A6DF1002E9A21 /* WGCDWebServerFileResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerFileResponse.m; sourceTree = "<group>"; };
+		F488B3F6290A6DF1002E9A21 /* WGCDWebServerErrorResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerErrorResponse.m; sourceTree = "<group>"; };
+		F488B3F7290A6DF1002E9A21 /* WGCDWebServerDataResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerDataResponse.m; sourceTree = "<group>"; };
+		F488B3F9290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerURLEncodedFormRequest.h; sourceTree = "<group>"; };
+		F488B3FA290A6DF1002E9A21 /* WGCDWebServerFileRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerFileRequest.h; sourceTree = "<group>"; };
+		F488B3FB290A6DF1002E9A21 /* WGCDWebServerDataRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerDataRequest.h; sourceTree = "<group>"; };
+		F488B3FC290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerMultiPartFormRequest.m; sourceTree = "<group>"; };
+		F488B3FD290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerURLEncodedFormRequest.m; sourceTree = "<group>"; };
+		F488B3FE290A6DF1002E9A21 /* WGCDWebServerFileRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerFileRequest.m; sourceTree = "<group>"; };
+		F488B3FF290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerMultiPartFormRequest.h; sourceTree = "<group>"; };
+		F488B400290A6DF1002E9A21 /* WGCDWebServerDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerDataRequest.m; sourceTree = "<group>"; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-OneKeyWallet/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -261,8 +305,11 @@
 		A24B8A7127422EF300E321A9 /* RNBridge */ = {
 			isa = PBXGroup;
 			children = (
+				F488B3E1290A6DF1002E9A21 /* WGCDWebServer */,
 				A24B8A7327422EF300E321A9 /* OKLiteManager.h */,
 				A24B8A7227422EF300E321A9 /* OKLiteManager.m */,
+				F483AEDE290A81C500423430 /* EmbedHttpServer.h */,
+				F483AEDF290A81C500423430 /* EmbedHttpServer.m */,
 				A2A3376828ADF8BC00053A5C /* JPushManager.h */,
 				A2A3376928ADF8BC00053A5C /* JPushManager.m */,
 				A2F1BFF927A2D30900C4EE99 /* RNLiteCallBackManager.h */,
@@ -335,6 +382,65 @@
 				92DBD88DE9BF7D494EA9DA96 /* OneKeyWallet */,
 			);
 			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		F488B3E1290A6DF1002E9A21 /* WGCDWebServer */ = {
+			isa = PBXGroup;
+			children = (
+				F488B3E2290A6DF1002E9A21 /* Core */,
+				F488B3EF290A6DF1002E9A21 /* Responses */,
+				F488B3F8290A6DF1002E9A21 /* Requests */,
+			);
+			path = WGCDWebServer;
+			sourceTree = "<group>";
+		};
+		F488B3E2290A6DF1002E9A21 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				F488B3E3290A6DF1002E9A21 /* WGCDWebServerFunctions.h */,
+				F488B3E4290A6DF1002E9A21 /* WGCDWebServerConnection.h */,
+				F488B3E5290A6DF1002E9A21 /* WGCDWebServerResponse.m */,
+				F488B3E6290A6DF1002E9A21 /* WGCDWebServerRequest.h */,
+				F488B3E7290A6DF1002E9A21 /* WGCDWebServer.h */,
+				F488B3E8290A6DF1002E9A21 /* WGCDWebServerConnection.m */,
+				F488B3E9290A6DF1002E9A21 /* WGCDWebServerFunctions.m */,
+				F488B3EA290A6DF1002E9A21 /* WGCDWebServerResponse.h */,
+				F488B3EB290A6DF1002E9A21 /* WGCDWebServerPrivate.h */,
+				F488B3EC290A6DF1002E9A21 /* WGCDWebServerHTTPStatusCodes.h */,
+				F488B3ED290A6DF1002E9A21 /* WGCDWebServer.m */,
+				F488B3EE290A6DF1002E9A21 /* WGCDWebServerRequest.m */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		F488B3EF290A6DF1002E9A21 /* Responses */ = {
+			isa = PBXGroup;
+			children = (
+				F488B3F0290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.m */,
+				F488B3F1290A6DF1002E9A21 /* WGCDWebServerFileResponse.h */,
+				F488B3F2290A6DF1002E9A21 /* WGCDWebServerErrorResponse.h */,
+				F488B3F3290A6DF1002E9A21 /* WGCDWebServerDataResponse.h */,
+				F488B3F4290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.h */,
+				F488B3F5290A6DF1002E9A21 /* WGCDWebServerFileResponse.m */,
+				F488B3F6290A6DF1002E9A21 /* WGCDWebServerErrorResponse.m */,
+				F488B3F7290A6DF1002E9A21 /* WGCDWebServerDataResponse.m */,
+			);
+			path = Responses;
+			sourceTree = "<group>";
+		};
+		F488B3F8290A6DF1002E9A21 /* Requests */ = {
+			isa = PBXGroup;
+			children = (
+				F488B3F9290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.h */,
+				F488B3FA290A6DF1002E9A21 /* WGCDWebServerFileRequest.h */,
+				F488B3FB290A6DF1002E9A21 /* WGCDWebServerDataRequest.h */,
+				F488B3FC290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m */,
+				F488B3FD290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m */,
+				F488B3FE290A6DF1002E9A21 /* WGCDWebServerFileRequest.m */,
+				F488B3FF290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.h */,
+				F488B400290A6DF1002E9A21 /* WGCDWebServerDataRequest.m */,
+			);
+			path = Requests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -506,23 +612,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F488B402290A6DF1002E9A21 /* WGCDWebServerConnection.m in Sources */,
 				A24B8A7727422EF300E321A9 /* NSString+OKAdd.m in Sources */,
 				A2DA064F288A8D1900357518 /* RNTabView.m in Sources */,
+				F488B405290A6DF1002E9A21 /* WGCDWebServerRequest.m in Sources */,
+				F488B401290A6DF1002E9A21 /* WGCDWebServerResponse.m in Sources */,
 				A2DA064C288A8C5700357518 /* UIColor+Hex.m in Sources */,
 				A2F1BFFB27A2D30900C4EE99 /* RNLiteCallBackManager.m in Sources */,
 				A2F6BE9928882FB9005798D7 /* RCTScrollView+swizzled.m in Sources */,
+				F488B407290A6DF1002E9A21 /* WGCDWebServerFileResponse.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				A23573BB2880172400A9CA58 /* RCTRootView+Orientation.m in Sources */,
+				F488B406290A6DF1002E9A21 /* WGCDWebServerStreamedResponse.m in Sources */,
 				A24B8A7527422EF300E321A9 /* OKNFCUtility.m in Sources */,
+				F488B40C290A6DF1002E9A21 /* WGCDWebServerFileRequest.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
 				A24B8A7827422EF300E321A9 /* NSData+StringToData.m in Sources */,
 				A3294A682844472100C18DD0 /* AppDelegate.m in Sources */,
+				F488B40B290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m in Sources */,
 				A2E533472885151100063227 /* PagingView.m in Sources */,
 				A284EFA327C49CDD0070F4EA /* NFCConfig.m in Sources */,
+				F488B404290A6DF1002E9A21 /* WGCDWebServer.m in Sources */,
+				F488B408290A6DF1002E9A21 /* WGCDWebServerErrorResponse.m in Sources */,
 				A24B8A7627422EF300E321A9 /* OKNFCLite.m in Sources */,
+				F488B40A290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m in Sources */,
 				A24B8A7427422EF300E321A9 /* OKNFCBridge.mm in Sources */,
 				A2D02C042824EAF9005A45F0 /* SplashScreenManager.m in Sources */,
 				A2A3376A28ADF8BC00053A5C /* JPushManager.m in Sources */,
+				F488B409290A6DF1002E9A21 /* WGCDWebServerDataResponse.m in Sources */,
+				F483AEE0290A81C500423430 /* EmbedHttpServer.m in Sources */,
+				F488B403290A6DF1002E9A21 /* WGCDWebServerFunctions.m in Sources */,
+				F488B40D290A6DF1002E9A21 /* WGCDWebServerDataRequest.m in Sources */,
 				1625CE96A62F41B0B52FF2B4 /* noop-file.swift in Sources */,
 				A2E5334D288515EA00063227 /* PagingViewContainer.m in Sources */,
 				A284EFC427CE238D0070F4EA /* OKTools.m in Sources */,
