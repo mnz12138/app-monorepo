@@ -134,7 +134,6 @@ const MarketDetailTabs: FC<MarketDetailTabsProps> = ({
         setDetailTabName(tabName);
       }}
       width={isVerticalLayout ? screenWidth : screenWidth - 224}
-      pagerProps={{ scrollEnabled: false }}
       containerStyle={{
         maxWidth: MAX_PAGE_CONTAINER_WIDTH,
         width: '100%',
@@ -160,8 +159,8 @@ const MarketDetailTabs: FC<MarketDetailTabsProps> = ({
         >
           {isVerticalLayout ? (
             <>
-              <MarketPriceChart coingeckoId="ethereum" />
-              <MarketDetailActionButton marketTokenId="ethereum" />
+              <MarketPriceChart coingeckoId={marketTokenId} />
+              <MarketDetailActionButton marketTokenId={marketTokenId} />
             </>
           ) : (
             <MarketPriceChart coingeckoId={marketTokenId} />
@@ -186,8 +185,8 @@ const MarketDetailTabs: FC<MarketDetailTabsProps> = ({
             <MarketInfoContent
               low24h={tokenDetail?.stats?.low24h}
               high24h={tokenDetail?.stats?.high24h}
-              low7d={tokenDetail?.stats?.low7d}
-              high7d={tokenDetail?.stats?.high7d}
+              marketCapDominance={tokenDetail?.stats?.marketCapDominance}
+              marketCapRank={tokenDetail?.stats?.marketCapRank}
               marketCap={tokenDetail?.stats?.marketCap}
               volume24h={tokenDetail?.stats?.volume24h}
               news={tokenDetail?.news}

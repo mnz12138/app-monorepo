@@ -57,7 +57,7 @@ const AddConnectionSiteDialog: FC<AddConnectionSideDialogProps> = ({
                     await backgroundApiProxy.serviceDapp.openConnectionModal({
                       origin,
                     });
-                  }, 20);
+                  }, 600);
                 } else {
                   toast.show({
                     title: intl.formatMessage({
