@@ -20,6 +20,8 @@ install! 'cocoapods', :deterministic_uuids => false
 
 target 'OneKeyWallet' do
   use_expo_modules!
+#   pod 'RNHttpServer', :path => '../../../node_modules/http-server-react-native/ios'
+
   post_integrate do |installer|
     begin
       expo_patch_react_imports!(installer)
@@ -50,7 +52,9 @@ target 'OneKeyWallet' do
 
   pod 'JXPagingView/Pager'
   pod 'JXCategoryView'
-  
+  pod "GCDWebServer", "~> 3.5.3"
+
+
   post_install do |installer|
     react_native_post_install(installer)
 

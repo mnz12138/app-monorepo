@@ -53,7 +53,7 @@ type NavigationProps = CompositeNavigationProp<
   NativeStackNavigationProp<StackBasicRoutesParams, StackRoutes.Developer>
 >;
 
-const { EmbedHttpServer } = NativeModules;
+const { EmbedHttpServer, WebServerManager } = NativeModules;
 
 let isHttpResponsed = false;
 
@@ -255,6 +255,7 @@ export const Debug = () => {
                   searchParams,
                   hash,
                 });
+                console.log('WebServerManager >>>>', typeof WebServerManager?.startServer);
               }}
             >
               <Typography.Body1>Log current wallet</Typography.Body1>

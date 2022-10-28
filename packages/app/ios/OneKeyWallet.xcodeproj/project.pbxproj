@@ -54,6 +54,8 @@
 		F488B40B290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3FD290A6DF1002E9A21 /* WGCDWebServerURLEncodedFormRequest.m */; };
 		F488B40C290A6DF1002E9A21 /* WGCDWebServerFileRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B3FE290A6DF1002E9A21 /* WGCDWebServerFileRequest.m */; };
 		F488B40D290A6DF1002E9A21 /* WGCDWebServerDataRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = F488B400290A6DF1002E9A21 /* WGCDWebServerDataRequest.m */; };
+		F4E2CB05290B5CD1006CFC09 /* RNHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E2CB03290B5CD1006CFC09 /* RNHTTPServer.swift */; };
+		F4E2CB06290B5CD1006CFC09 /* RNHTTPServerBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = F4E2CB04290B5CD1006CFC09 /* RNHTTPServerBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -161,6 +163,9 @@
 		F488B3FE290A6DF1002E9A21 /* WGCDWebServerFileRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerFileRequest.m; sourceTree = "<group>"; };
 		F488B3FF290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGCDWebServerMultiPartFormRequest.h; sourceTree = "<group>"; };
 		F488B400290A6DF1002E9A21 /* WGCDWebServerDataRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGCDWebServerDataRequest.m; sourceTree = "<group>"; };
+		F4E2CB02290B5CD1006CFC09 /* RNHTTPServer-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RNHTTPServer-Bridging-Header.h"; sourceTree = "<group>"; };
+		F4E2CB03290B5CD1006CFC09 /* RNHTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RNHTTPServer.swift; sourceTree = "<group>"; };
+		F4E2CB04290B5CD1006CFC09 /* RNHTTPServerBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RNHTTPServerBridge.m; sourceTree = "<group>"; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-OneKeyWallet/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -310,6 +315,9 @@
 				A24B8A7227422EF300E321A9 /* OKLiteManager.m */,
 				F483AEDE290A81C500423430 /* EmbedHttpServer.h */,
 				F483AEDF290A81C500423430 /* EmbedHttpServer.m */,
+				F4E2CB02290B5CD1006CFC09 /* RNHTTPServer-Bridging-Header.h */,
+				F4E2CB03290B5CD1006CFC09 /* RNHTTPServer.swift */,
+				F4E2CB04290B5CD1006CFC09 /* RNHTTPServerBridge.m */,
 				A2A3376828ADF8BC00053A5C /* JPushManager.h */,
 				A2A3376928ADF8BC00053A5C /* JPushManager.m */,
 				A2F1BFF927A2D30900C4EE99 /* RNLiteCallBackManager.h */,
@@ -615,6 +623,7 @@
 				F488B402290A6DF1002E9A21 /* WGCDWebServerConnection.m in Sources */,
 				A24B8A7727422EF300E321A9 /* NSString+OKAdd.m in Sources */,
 				A2DA064F288A8D1900357518 /* RNTabView.m in Sources */,
+				F4E2CB06290B5CD1006CFC09 /* RNHTTPServerBridge.m in Sources */,
 				F488B405290A6DF1002E9A21 /* WGCDWebServerRequest.m in Sources */,
 				F488B401290A6DF1002E9A21 /* WGCDWebServerResponse.m in Sources */,
 				A2DA064C288A8C5700357518 /* UIColor+Hex.m in Sources */,
@@ -637,6 +646,7 @@
 				A24B8A7627422EF300E321A9 /* OKNFCLite.m in Sources */,
 				F488B40A290A6DF1002E9A21 /* WGCDWebServerMultiPartFormRequest.m in Sources */,
 				A24B8A7427422EF300E321A9 /* OKNFCBridge.mm in Sources */,
+				F4E2CB05290B5CD1006CFC09 /* RNHTTPServer.swift in Sources */,
 				A2D02C042824EAF9005A45F0 /* SplashScreenManager.m in Sources */,
 				A2A3376A28ADF8BC00053A5C /* JPushManager.m in Sources */,
 				F488B409290A6DF1002E9A21 /* WGCDWebServerDataResponse.m in Sources */,
