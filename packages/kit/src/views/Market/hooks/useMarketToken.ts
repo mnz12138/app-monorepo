@@ -65,7 +65,7 @@ export const useMarketTokenItem = ({
 }) => {
   const isVertical = useIsVerticalLayout();
   const isMidLayout = useMarketMidLayout();
-  const marketTokens = useAppSelector((s) => s.market.marketTokens);
+  const marketTokens = useAppSelector((s) => s.marketCache.marketTokens);
   const marketTokenItem = marketTokens[coingeckoId];
   useEffect(() => {
     if (coingeckoId?.length) {

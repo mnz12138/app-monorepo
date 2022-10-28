@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { useAppSelector } from '../../../hooks';
-import {
-  MARKET_FAVORITES_CATEGORYID,
-  MarketCategoryType,
-} from '../../../store/reducers/market';
+import { MarketCategoryType } from '../../../store/reducers/market';
+import { MARKET_FAVORITES_CATEGORYID } from '../../../store/reducers/marketCache';
 
 export const useMarketSelectedCategory = () => {
-  const selectedCategoryId = useAppSelector((s) => s.market.selectedCategoryId);
-  const categorys = useAppSelector((s) => s.market.categorys);
+  const selectedCategoryId = useAppSelector(
+    (s) => s.marketCache.selectedCategoryId,
+  );
+  const categorys = useAppSelector((s) => s.marketCache.categorys);
   return useMemo(
     () => (selectedCategoryId ? categorys[selectedCategoryId] : null),
     [categorys, selectedCategoryId],
@@ -17,12 +17,14 @@ export const useMarketSelectedCategory = () => {
 };
 
 export const useMarketSelectedCategoryId = () => {
-  const selectedCategoryId = useAppSelector((s) => s.market.selectedCategoryId);
+  const selectedCategoryId = useAppSelector(
+    (s) => s.marketCache.selectedCategoryId,
+  );
   return useMemo(() => selectedCategoryId, [selectedCategoryId]);
 };
 
 export const useMarketCategoryList = () => {
-  const categorys = useAppSelector((s) => s.market.categorys);
+  const categorys = useAppSelector((s) => s.marketCache.categorys);
   return useMemo(() => {
     if (categorys && Object.values(categorys).length > 0) {
       return Object.values(categorys).filter(
@@ -35,7 +37,7 @@ export const useMarketCategoryList = () => {
 };
 
 export const useMarketFavoriteRecommentedList = () => {
-  const categorys = useAppSelector((s) => s.market.categorys);
+  const categorys = useAppSelector((s) => s.marketCache.categorys);
   const favoritesCategory = categorys[MARKET_FAVORITES_CATEGORYID];
   return useMemo(
     () =>
@@ -47,7 +49,7 @@ export const useMarketFavoriteRecommentedList = () => {
 };
 
 export const useMarketFavoriteCategoryTokenIds = () => {
-  const categorys = useAppSelector((s) => s.market.categorys);
+  const categorys = useAppSelector((s) => s.marketCache.categorys);
   const favoritesCategory = categorys[MARKET_FAVORITES_CATEGORYID];
   return useMemo(
     () =>
@@ -59,7 +61,7 @@ export const useMarketFavoriteCategoryTokenIds = () => {
 };
 
 export const useMarketSearchCategoryList = () => {
-  const categorys = useAppSelector((s) => s.market.categorys);
+  const categorys = useAppSelector((s) => s.marketCache.categorys);
   return useMemo(() => {
     if (categorys && Object.values(categorys).length > 0) {
       return Object.values(categorys).filter(

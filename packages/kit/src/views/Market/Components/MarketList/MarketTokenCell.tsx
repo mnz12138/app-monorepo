@@ -25,7 +25,7 @@ import { TabRoutesParams } from '@onekeyhq/kit/src/routes/types';
 import {
   MARKET_FAVORITES_CATEGORYID,
   MarketTokenItem,
-} from '@onekeyhq/kit/src/store/reducers/market';
+} from '@onekeyhq/kit/src/store/reducers/marketCache';
 
 import { useMarketSelectedCategoryId } from '../../hooks/useMarketCategory';
 import { useMarketTokenItem } from '../../hooks/useMarketToken';

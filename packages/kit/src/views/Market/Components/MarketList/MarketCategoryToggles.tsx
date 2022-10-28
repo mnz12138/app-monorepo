@@ -8,7 +8,7 @@ import {
 } from '@onekeyhq/components/src';
 import { ToggleButtonProps } from '@onekeyhq/components/src/ToggleButtonGroup/ToggleButtonGroup';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
-import { MARKET_FAVORITES_CATEGORYID } from '@onekeyhq/kit/src/store/reducers/market';
+import { MARKET_FAVORITES_CATEGORYID } from '@onekeyhq/kit/src/store/reducers/marketCache';
 
 import { MARKET_FAKE_SKELETON_CATEGORY_ARRAY } from '../../config';
 import { useMarketSelectedCategoryId } from '../../hooks/useMarketCategory';

@@ -10,7 +10,7 @@ import {
   Token,
   Typography,
 } from '@onekeyhq/components/src';
-import { MarketTokenItem } from '@onekeyhq/kit/src/store/reducers/market';
+import { MarketTokenItem } from '@onekeyhq/kit/src/store/reducers/marketCache';
 
 import { useMarketTokenItem } from '../../hooks/useMarketToken';
 

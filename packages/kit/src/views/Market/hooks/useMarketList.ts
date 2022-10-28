@@ -6,16 +6,14 @@ import { useIsVerticalLayout } from '@onekeyhq/components/src';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { useAppSelector } from '../../../hooks';
-import {
-  MARKET_FAVORITES_CATEGORYID,
-  MARKET_TAB_NAME,
-} from '../../../store/reducers/market';
+import { MARKET_TAB_NAME } from '../../../store/reducers/market';
+import { MARKET_FAVORITES_CATEGORYID } from '../../../store/reducers/marketCache';
 
 import { useMarketSelectedCategory } from './useMarketCategory';
 import { useMarketMidLayout } from './useMarketLayout';
 
 export const useListSort = () => {
-  const listSort = useAppSelector((s) => s.market.listSort);
+  const listSort = useAppSelector((s) => s.marketCache.listSort);
   return useMemo(() => listSort, [listSort]);
 };
 

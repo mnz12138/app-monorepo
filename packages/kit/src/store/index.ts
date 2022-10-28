@@ -41,6 +41,7 @@ import fiatMoneyReducer from './reducers/fiatMoney';
 import generalReducer from './reducers/general';
 import hardwareReducer from './reducers/hardware';
 import marketReducer from './reducers/market';
+import marketCacheReducer from './reducers/marketCache';
 import nftReducer from './reducers/nft';
 import reducerAccountSelector from './reducers/reducerAccountSelector';
 import refresherReducer from './reducers/refresher';
@@ -77,6 +78,7 @@ const allReducers = combineReducers({
   nft: nftReducer,
   webTabs: webTabsReducer,
   market: marketReducer,
+  marketCache: marketCacheReducer,
 });
 
 function rootReducer(reducers: Reducer, initialState = {}): any {

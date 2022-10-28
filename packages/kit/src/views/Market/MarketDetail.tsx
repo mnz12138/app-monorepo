@@ -35,7 +35,7 @@ import {
   TabRoutes,
   TabRoutesParams,
 } from '../../routes/types';
-import { MarketTokenItem } from '../../store/reducers/market';
+import { MarketTokenItem } from '../../store/reducers/marketCache';
 import { CurrencyType } from '../FiatPay/types';
 import { StakingRoutes } from '../Staking/typing';
 

@@ -8,7 +8,7 @@ import {
   Icon,
   useIsVerticalLayout,
 } from '@onekeyhq/components/src';
-import { MarketTokenItem } from '@onekeyhq/kit/src/store/reducers/market';
+import { MarketTokenItem } from '@onekeyhq/kit/src/store/reducers/marketCache';
 import { openUrl } from '@onekeyhq/kit/src/utils/openUrl';
 
 import { ListHeadTagsForSearch, SUBMIT_TOKEN_URL } from '../../config';

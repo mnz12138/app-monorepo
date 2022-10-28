@@ -19,7 +19,7 @@ import { SelectProps } from '@onekeyhq/components/src/Select';
 import { HomeRoutes, HomeRoutesParams } from '@onekeyhq/kit/src/routes/types';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
-import { MarketTokenItem } from '../../store/reducers/market';
+import { MarketTokenItem } from '../../store/reducers/marketCache';
 import { showOverlay } from '../../utils/overlayUtils';
 import { OverlayPanel } from '../Overlay/OverlayPanel';
 

@@ -7,30 +7,32 @@ import { getFiatEndpoint } from '@onekeyhq/engine/src/endpoint';
 import { formatServerToken } from '@onekeyhq/engine/src/managers/token';
 
 import {
-  MARKET_FAVORITES_CATEGORYID,
-  MarketCategory,
-  MarketListSortType,
-  MarketTokenItem,
   MarketTopTabName,
-  cancleMarketFavorite,
   clearMarketSearchTokenHistory,
-  moveTopMarketFavorite,
-  saveMarketCategorys,
-  saveMarketFavorite,
   saveMarketSearchTokenHistory,
   switchMarketTopTab,
   syncMarketSearchTokenHistorys,
   updateMarketChats,
-  updateMarketListSort,
   updateMarketTokenDetail,
   updateMarketTokenPriceSubscribe,
-  updateMarketTokens,
-  updateMarketTokensBaseInfo,
   updateSearchKeyword,
   updateSearchTabCategory,
   updateSearchTokens,
-  updateSelectedCategory,
 } from '../../store/reducers/market';
+import {
+  MARKET_FAVORITES_CATEGORYID,
+  MarketCategory,
+  MarketListSortType,
+  MarketTokenItem,
+  cancleMarketFavorite,
+  moveTopMarketFavorite,
+  saveMarketCategorys,
+  saveMarketFavorite,
+  updateMarketListSort,
+  updateMarketTokens,
+  updateMarketTokensBaseInfo,
+  updateSelectedCategory,
+} from '../../store/reducers/marketCache';
 import { ServerToken } from '../../store/typings';
 import { getDefaultLocale } from '../../utils/locale';
 import { backgroundClass, backgroundMethod } from '../decorators';
@@ -63,8 +65,10 @@ export default class ServiceMarket extends ServiceBase {
     dispatch(saveMarketCategorys(datas));
 
     // toggle default category
-    const selectedCategoryId = appSelector((s) => s.market.selectedCategoryId);
-    const categorys = appSelector((s) => s.market.categorys);
+    const selectedCategoryId = appSelector(
+      (s) => s.marketCache.selectedCategoryId,
+    );
+    const categorys = appSelector((s) => s.marketCache.categorys);
     const defaultCategory = Object.values(categorys).find(
       (c) => c.defaultSelected,
     );
@@ -109,7 +113,7 @@ export default class ServiceMarket extends ServiceBase {
     const { dispatch, appSelector } = this.backgroundApi;
     dispatch(updateMarketTokens({ categoryId, marketTokens: data }));
     // check token base(tokens & logoURI)
-    const marketTokens = appSelector((s) => s.market.marketTokens);
+    const marketTokens = appSelector((s) => s.marketCache.marketTokens);
     const imperfectMatketTokens = data.filter(
       (t) => !marketTokens[t.coingeckoId]?.tokens,
     );

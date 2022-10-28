@@ -18,7 +18,7 @@ import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/background
 import {
   MARKET_FAVORITES_CATEGORYID,
   MarketTokenItem,
-} from '@onekeyhq/kit/src/store/reducers/market';
+} from '@onekeyhq/kit/src/store/reducers/marketCache';
 import { showOverlay } from '@onekeyhq/kit/src/utils/overlayUtils';
 
 import { OverlayPanel } from '../../../Overlay/OverlayPanel';

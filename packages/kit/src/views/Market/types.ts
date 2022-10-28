@@ -3,7 +3,7 @@ import { MessageDescriptor } from 'react-intl';
 import { ICON_NAMES } from '@onekeyhq/components/src';
 import { Token as TokenType } from '@onekeyhq/engine/src/types/token';
 
-import { MarketCategory } from '../../store/reducers/market';
+import { MarketCategory } from '../../store/reducers/marketCache';
 
 export type CommonPriceCardProps = {
   onPress?: () => void;

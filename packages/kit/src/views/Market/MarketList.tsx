@@ -22,7 +22,7 @@ import { HomeRoutes, HomeRoutesParams } from '../../routes/types';
 import {
   MARKET_FAVORITES_CATEGORYID,
   MarketCategory,
-} from '../../store/reducers/market';
+} from '../../store/reducers/marketCache';
 
 import MarketCategoryToggles from './Components/MarketList/MarketCategoryToggles';
 import { showMarketCellMoreMenu } from './Components/MarketList/MarketCellMoreMenu';
