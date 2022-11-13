@@ -8,6 +8,7 @@ import { SimpleDbEntityTokens } from './entity/SimpleDbEntityPresetTokens';
 import { SimpleDbEntityPwKey } from './entity/SimpleDbEntityPwKey';
 import { SimpleDbEntitySwap } from './entity/SimpleDbEntitySwap';
 import { SimpleDbEntityWalletConnect } from './entity/SimpleDbEntityWalletConnect';
+import { SimpleDbEntitySetting } from './entity/SimpleDbEntitySetting';
 
 class SimpleDb {
   history = new SimpleDbEntityHistory();
@@ -25,6 +26,8 @@ class SimpleDb {
   nft = new SimpleDbEntityNFT();
 
   market = new SimpleDbEntityMarket();
+
+  setting = new SimpleDbEntitySetting()
 }
 
 // eslint-disable-next-line import/no-mutable-exports

@@ -33,6 +33,9 @@ import {
 import { SwapQuoter } from './quoter';
 import { FetchQuoteParams, QuoteData, SwapError, SwapRoutes } from './typings';
 import { TokenAmount, getTokenAmountValue } from './utils';
+import { useWalletsSwapTransactions } from './hooks/useTransactions';
+import { openAppReview } from '../../utils/openAppReview'
+import { wait } from '../../utils/helper'
 
 function convertToSwapInfo(options: {
   swapQuote: QuoteData;
@@ -95,6 +98,7 @@ const ExchangeButton = () => {
   const toast = useToast();
   const navigation = useNavigation();
   const { networks } = useRuntime();
+  const txs = useWalletsSwapTransactions();
   const { quote, sendingAccount } = useSwapState();
   const { inputAmount, outputAmount } = useDerivedSwapState();
   const recipient = useSwapRecipient();
@@ -172,7 +176,7 @@ const ExchangeButton = () => {
       return;
     }
 
-    const addSwapTransaction = (hash: string, nonce?: number) => {
+    const addSwapTransaction = async (hash: string, nonce?: number) => {
       backgroundApiProxy.dispatch(
         addTransaction({
           accountId: sendingAccount.id,
@@ -220,6 +224,10 @@ const ExchangeButton = () => {
           sendingAccount.id,
           outputAmount.token.tokenIdOnNetwork,
         );
+      }
+      if (txs.length === 0) {
+        await wait(2000)
+        openAppReview();
       }
     };
 
