@@ -40,6 +40,7 @@ import { SWAP_TAB_NAME } from '../../../store/reducers/market';
 import { calculateGains, getSummedValues } from '../../../utils/priceUtils';
 import { showAccountMoreMenu } from '../../Overlay/AccountMoreMenu';
 import { showAccountValueSettings } from '../../Overlay/AccountValueSettings';
+import { openAppReview } from '../../../utils/openAppReview';
 
 type NavigationProps = ModalScreenProps<ReceiveTokenRoutesParams> &
   ModalScreenProps<SendRoutesParams>;
@@ -189,7 +190,7 @@ const AccountOption: FC<AccountOptionProps> = ({ isSmallView }) => {
 
   return (
     <Box flexDirection="row" px={{ base: 1, md: 0 }} mx={-3}>
-      <Box flex={{ base: 1, sm: 0 }} mx={3} minW="56px" alignItems="center">
+      {/* <Box flex={{ base: 1, sm: 0 }} mx={3} minW="56px" alignItems="center">
         <IconButton
           circle
           size={isSmallView ? 'xl' : 'lg'}
@@ -270,6 +271,29 @@ const AccountOption: FC<AccountOptionProps> = ({ isSmallView }) => {
           }
         >
           {intl.formatMessage({ id: 'title__swap' })}
+        </Typography.CaptionStrong>
+      </Box> */}
+      <Box flex={{ base: 1, sm: 0 }} mx={3} minW="56px" alignItems="center">
+        <IconButton
+          circle
+          size={isSmallView ? 'xl' : 'lg'}
+          name="SwitchHorizontalOutline"
+          type="basic"
+          isDisabled={wallet?.type === 'watching' || !account}
+          onPress={() => {
+            openAppReview()
+          }}
+        />
+        <Typography.CaptionStrong
+          textAlign="center"
+          mt="8px"
+          color={
+            wallet?.type === 'watching' || !account
+              ? 'text-disabled'
+              : 'text-default'
+          }
+        >
+          test
         </Typography.CaptionStrong>
       </Box>
 
