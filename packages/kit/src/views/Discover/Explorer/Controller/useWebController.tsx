@@ -66,31 +66,31 @@ export const useWebController = ({
 
       if (dapp && dapp.url !== tab?.url) {
         const { firstRemindDAPP } = appSelector((s) => s.discover);
-        if (firstRemindDAPP) {
-          let dappOpenConfirm: ((confirm: boolean) => void) | undefined;
-          DialogManager.show({
-            render: (
-              <DappOpenHintDialog
-                onVisibilityChange={() => {
-                  dappOpenConfirm = undefined;
-                }}
-                onConfirm={() => {
-                  dappOpenConfirm?.(true);
-                }}
-              />
-            ),
-          });
+        // if (firstRemindDAPP) {
+        //   let dappOpenConfirm: ((confirm: boolean) => void) | undefined;
+        //   DialogManager.show({
+        //     render: (
+        //       <DappOpenHintDialog
+        //         onVisibilityChange={() => {
+        //           dappOpenConfirm = undefined;
+        //         }}
+        //         onConfirm={() => {
+        //           dappOpenConfirm?.(true);
+        //         }}
+        //       />
+        //     ),
+        //   });
 
-          const isConfirm = await new Promise<boolean>((resolve) => {
-            dappOpenConfirm = resolve;
-          });
+        //   const isConfirm = await new Promise<boolean>((resolve) => {
+        //     dappOpenConfirm = resolve;
+        //   });
 
-          if (!isConfirm) {
-            return false;
-          }
+        //   if (!isConfirm) {
+        //     return false;
+        //   }
 
-          dispatch(updateFirstRemindDAPP(false));
-        }
+        //   dispatch(updateFirstRemindDAPP(false));
+        // }
 
         return gotoSite({
           url: dapp.url,
