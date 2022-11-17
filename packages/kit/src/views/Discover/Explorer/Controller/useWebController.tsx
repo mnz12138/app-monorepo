@@ -2,20 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { WebViewNavigation } from 'react-native-webview/lib/WebViewTypes';
 
-import { DialogManager } from '@onekeyhq/components';
+// import { DialogManager } from '@onekeyhq/components';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
 import { useAppSelector } from '../../../../hooks';
-import { appSelector } from '../../../../store';
-import { updateFirstRemindDAPP } from '../../../../store/reducers/discover';
+// import { appSelector } from '../../../../store';
+// import { updateFirstRemindDAPP } from '../../../../store/reducers/discover';
 import {
   homeResettingFlags,
   homeTab,
   setIncomingUrl,
   setWebTabData,
 } from '../../../../store/reducers/webTabs';
-import DappOpenHintDialog from '../DappOpenHintDialog';
+// import DappOpenHintDialog from '../DappOpenHintDialog';
 import {
   MatchDAppItemType,
   OnWebviewNavigation,
@@ -55,7 +55,7 @@ export const useWebController = ({
     tab,
   });
   const openMatchDApp = useCallback(
-    async ({ dapp, webSite }: MatchDAppItemType) => {
+    ({ dapp, webSite }: MatchDAppItemType) => {
       if (webSite) {
         return gotoSite({
           url: webSite.url,
@@ -65,7 +65,7 @@ export const useWebController = ({
       }
 
       if (dapp && dapp.url !== tab?.url) {
-        const { firstRemindDAPP } = appSelector((s) => s.discover);
+        // const { firstRemindDAPP } = appSelector((s) => s.discover);
         // if (firstRemindDAPP) {
         //   let dappOpenConfirm: ((confirm: boolean) => void) | undefined;
         //   DialogManager.show({

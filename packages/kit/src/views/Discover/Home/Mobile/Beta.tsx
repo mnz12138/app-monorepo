@@ -195,15 +195,17 @@ const ListHeaderItems = () => {
 
 const ListHeaderComponent = () => {
   const dappItems = useAppSelector((s) => s.discover.dappItems);
-  const intl = useIntl()
+  const intl = useIntl();
   if (!dappItems) {
     return null;
   }
   return (
     <Box>
       {/* <DAppCategories /> */}
-      <Box px='4'>
-        <Typography.Display2XLarge>{intl.formatMessage({ id: 'title__browser' })}</Typography.Display2XLarge>
+      <Box px="4">
+        <Typography.Display2XLarge>
+          {intl.formatMessage({ id: 'title__browser' })}
+        </Typography.Display2XLarge>
       </Box>
       {platformEnv.isWeb ? null : <ListHeaderItems />}
     </Box>

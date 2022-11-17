@@ -47,7 +47,7 @@ jobs:
         if: ${{ !github.event.workflow_run }}
         run: |
           # Generate build number ------- start
-          echo "BUILD_NUMBER=1" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=2022111706" >> $GITHUB_ENV
           # Generate build number ------- end
 
       - name: Setup ENV BUILD_NUMBER by workflow_run
@@ -114,3 +114,5 @@ jobs:
         run: |
           cd packages/app
           eas build --profile=production --platform ios --non-interactive --no-wait
+          echo ${{ secrets.APPSTORE_PROFILE }} | base64 -d > ./ios/certs/profile.mobileprovision
+          eas build --profile=production-store --platform ios --non-interactive --no-wait --auto-submit

@@ -1,14 +1,13 @@
 import { FC, useContext } from 'react';
 
 import { Box } from '@onekeyhq/components';
+import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import { DiscoverContext } from '../context';
 
+import { Beta } from './Beta';
 import { Mine } from './Mine';
 import { Others } from './Others';
-import { Beta } from './Beta'
-
-import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 export const Android = () => {
   const { categoryId } = useContext(DiscoverContext);
@@ -17,16 +16,13 @@ export const Android = () => {
       {categoryId ? <Others /> : <Mine />}
     </Box>
   );
-}
-
-export const IosContent = () => {
-  return (
-    <Box flex="1" bg="background-default">
-      <Beta></Beta>
-    </Box>
-  )
-}
-
-export const Mobile: FC = () => {
-  return platformEnv.isNativeIOS ? <IosContent /> : <Android></Android>;
 };
+
+export const IosContent = () => (
+  <Box flex="1" bg="background-default">
+    <Beta />
+  </Box>
+);
+
+export const Mobile: FC = () =>
+  platformEnv.isNativeIOS ? <IosContent /> : <Android />;
