@@ -4942,18 +4942,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@onekeyfe/hd-ble-sdk@npm:0.2.5":
+"@onekeyfe/hd-ble-sdk@file:.yalc/@onekeyfe/hd-ble-sdk::locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit":
   version: 0.2.5
-  resolution: "@onekeyfe/hd-ble-sdk@npm:0.2.5"
+  resolution: "@onekeyfe/hd-ble-sdk@file:.yalc/@onekeyfe/hd-ble-sdk#.yalc/@onekeyfe/hd-ble-sdk::hash=bf679b&locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit"
   dependencies:
     "@onekeyfe/hd-core": ^0.2.5
     "@onekeyfe/hd-shared": ^0.2.5
     "@onekeyfe/hd-transport-react-native": ^0.2.5
-  checksum: 49f63b4343f401f7102c0f100b3770a066538b5ee70557fdeaf6b2c32b46e638835f6f1df993f2df309d926cdf1de2394ed16f4fe66e37c48d99a501394af2e4
+  checksum: 5cba4356139538669ccd057d68d0b4db8906bcb90fd3ae832420a00656bc64aab903c5fa1c64b54b2e4cda22e1b46f6bfd94c7450c2f7053634cadc592e649e8
   languageName: node
   linkType: hard
 
-"@onekeyfe/hd-core@npm:0.2.5, @onekeyfe/hd-core@npm:^0.2.5":
+"@onekeyfe/hd-core@file:.yalc/@onekeyfe/hd-core::locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit":
+  version: 0.2.5
+  resolution: "@onekeyfe/hd-core@file:.yalc/@onekeyfe/hd-core#.yalc/@onekeyfe/hd-core::hash=d3de0b&locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit"
+  dependencies:
+    "@onekeyfe/hd-shared": ^0.2.5
+    "@onekeyfe/hd-transport": ^0.2.5
+    axios: ^0.27.2
+    bignumber.js: ^9.0.2
+    jszip: ^3.10.1
+    parse-uri: ^1.0.7
+    semver: ^7.3.7
+  peerDependencies:
+    "@noble/hashes": ^1.1.3
+    ripple-keypairs: ^1.1.4
+  checksum: 107deb59ddabd856b2ef0072f7bb9d2a24a9f6d12eac56c7249e9961c424c4fb403a36e26873673e93933cd6bca38d1251326453c9fa6b68242b9f0e26ae6213
+  languageName: node
+  linkType: hard
+
+"@onekeyfe/hd-core@npm:^0.2.5":
   version: 0.2.5
   resolution: "@onekeyfe/hd-core@npm:0.2.5"
   dependencies:
@@ -4978,6 +4996,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@onekeyfe/hd-shared@npm:^0.1.57":
+  version: 0.1.59
+  resolution: "@onekeyfe/hd-shared@npm:0.1.59"
+  checksum: a528f0348fae4bf78af65859cc415dfb500e897acf2a82f5d0e9686638b09ba94e6ef332244d5985520e4425d3d69f6133699daaa87afb6807d21e0f90fb0ec6
+  languageName: node
+  linkType: hard
+
 "@onekeyfe/hd-transport-http@npm:^0.2.5":
   version: 0.2.5
   resolution: "@onekeyfe/hd-transport-http@npm:0.2.5"
@@ -4986,6 +5011,18 @@ __metadata:
     "@onekeyfe/hd-transport": ^0.2.5
     axios: ^0.27.2
   checksum: ccc1f51b1c760b4dacde898d09f3704ce88bbfbc1c695f55f9fee02ea1bbe6f6ce683fba46800a70af0e2b92acf56bc87d7f55c007f3e0759955e8096576ef82
+  languageName: node
+  linkType: hard
+
+"@onekeyfe/hd-transport-react-native@file:.yalc/@onekeyfe/hd-transport-react-native::locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit":
+  version: 0.1.57
+  resolution: "@onekeyfe/hd-transport-react-native@file:.yalc/@onekeyfe/hd-transport-react-native#.yalc/@onekeyfe/hd-transport-react-native::hash=9f8d69&locator=%40onekeyhq%2Fkit%40workspace%3Apackages%2Fkit"
+  dependencies:
+    "@onekeyfe/hd-shared": ^0.1.57
+    "@onekeyfe/hd-transport": ^0.1.57
+    react-native-ble-manager: ^8.1.0
+    react-native-ble-plx: ^2.0.3
+  checksum: e0946dca6062a99e995fecf64db78de2206fb49849379592427ae0d874d98ceda94655108922edd6a778c4f737b5cc5d02f4c0cedace5d1fa5858f52ae61467e
   languageName: node
   linkType: hard
 
@@ -5008,6 +5045,17 @@ __metadata:
     "@onekeyfe/hd-shared": ^0.2.5
     "@onekeyfe/hd-transport": ^0.2.5
   checksum: 9aed968ba87412573893b479f2eb47621106bef15c9618fd4fc1263121759e3bdfa7737f8f434e0b8be5d4acfc28de873aa45bf212d9a3b7a912787b092da86c
+  languageName: node
+  linkType: hard
+
+"@onekeyfe/hd-transport@npm:^0.1.57":
+  version: 0.1.59
+  resolution: "@onekeyfe/hd-transport@npm:0.1.59"
+  dependencies:
+    bytebuffer: ^5.0.1
+    long: ^4.0.0
+    protobufjs: ^6.11.2
+  checksum: dff1e8f73fc8903d594ace725657cf9371bb1b42c6a5e439c5623ef52e4db78892257a49d0529ca04ff29bfa83eebd309c4568910c7edd0bc886cf19710e7a31
   languageName: node
   linkType: hard
 
@@ -5562,9 +5610,10 @@ __metadata:
   dependencies:
     "@0xsequence/multicall": ^0.36.8
     "@gorhom/bottom-sheet": ^4
-    "@onekeyfe/hd-ble-sdk": 0.2.5
-    "@onekeyfe/hd-core": 0.2.5
+    "@onekeyfe/hd-ble-sdk": "file:.yalc/@onekeyfe/hd-ble-sdk"
+    "@onekeyfe/hd-core": "file:.yalc/@onekeyfe/hd-core"
     "@onekeyfe/hd-shared": 0.2.5
+    "@onekeyfe/hd-transport-react-native": "file:.yalc/@onekeyfe/hd-transport-react-native"
     "@onekeyfe/hd-web-sdk": 0.2.5
     "@onekeyhq/components": "*"
     "@openzeppelin/contracts": ^4.5.0

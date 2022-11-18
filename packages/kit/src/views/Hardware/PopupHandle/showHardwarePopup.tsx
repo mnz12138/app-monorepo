@@ -250,7 +250,7 @@ export default async function showHardwarePopup({
     uiRequest === UI_REQUEST.BLUETOOTH_PERMISSION
   ) {
     const check = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
     );
 
     if (check || platformEnv.isNativeIOS) {
@@ -268,18 +268,24 @@ export default async function showHardwarePopup({
       return;
     }
 
-    const result = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    );
-    await PermissionsAndroid.requestMultiple([
+    // const result = await PermissionsAndroid.request(
+    //   PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    // );
+    const result = await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE,
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
     ]);
 
-    if (
-      result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN ||
-      result === PermissionsAndroid.RESULTS.DENIED
-    ) {
+    const isGranted =
+      result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADVERTISE] ===
+        PermissionsAndroid.RESULTS.GRANTED &&
+      result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
+        PermissionsAndroid.RESULTS.GRANTED &&
+      result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
+        PermissionsAndroid.RESULTS.GRANTED;
+
+    if (!isGranted) {
       DialogManager.show({
         render: (
           <PermissionDialog

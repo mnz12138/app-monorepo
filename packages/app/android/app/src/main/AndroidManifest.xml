@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="so.onekey.app.wallet">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="so.onekey.app.wallet">
   <uses-permission android:name="android.permission.CAMERA"/>
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -13,9 +13,12 @@
       android:maxSdkVersion="30" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
       android:maxSdkVersion="30" />
+  <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" tools:targetApi="29" android:maxSdkVersion="32"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
+      android:usesPermissionFlags="neverForLocation"
+      tools:targetApi="31" />
   <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
   <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
   <queries>
     <intent>
