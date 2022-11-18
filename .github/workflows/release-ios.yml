@@ -47,7 +47,7 @@ jobs:
         if: ${{ !github.event.workflow_run }}
         run: |
           # Generate build number ------- start
-          echo "BUILD_NUMBER=2022111706" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=2022111808" >> $GITHUB_ENV
           # Generate build number ------- end
 
       - name: Setup ENV BUILD_NUMBER by workflow_run
