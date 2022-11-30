@@ -8,7 +8,6 @@ import {
   FlatList,
   Pressable,
   Skeleton,
-  Typography,
 } from '@onekeyhq/components';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
@@ -80,14 +79,7 @@ const ListEmptyComponentRenderItem = () => {
     ),
     [data, numColumns, renderItem],
   );
-  return (
-    <Box width="100%">
-      <Box mx="8">
-        <Typography.Heading>Dapps</Typography.Heading>
-      </Box>
-      {flatList}
-    </Box>
-  );
+  return <Box width="100%">{flatList}</Box>;
 };
 
 export const EmptySkeleton = () => (
