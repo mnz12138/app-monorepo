@@ -82,10 +82,10 @@
   "submit": {
     "production-store": {
       "ios": {
-        "ascAppId": "1609559473",
-        "appleTeamId": "BVJ3FU5H2K",
-        "ascApiKeyIssuerId": "bbc48cd1-0ffa-4bb7-994d-fab6a5eff73e",
-        "ascApiKeyId": "KAV3B73J8L",
+        "ascAppId": "6444696726",
+        "appleTeamId": "P6X7RLB34T",
+        "ascApiKeyIssuerId": "44b0c5ce-4d73-43b4-b73f-2d5fb9444662",
+        "ascApiKeyId": "2745Y9T5HF",
         "ascApiKeyPath": "./AscApiKey.p8"
       },
       "android": {

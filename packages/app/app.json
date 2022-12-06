@@ -1,9 +1,9 @@
 {
   "expo": {
-    "scheme": "onekey-wallet",
-    "name": "OneKey Wallet",
-    "slug": "OneKey-Wallet",
-    "owner": "onekeyhq",
+    "scheme": "private-wallet",
+    "name": "Private Wallet",
+    "slug": "privatekeyhqapp-monorepo",
+    "owner": "mnz",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,8 +18,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "so.onekey.wallet",
-      "associatedDomains": ["applinks:app.onekey.so"]
+      "bundleIdentifier": "io.private.wallet",
+      "associatedDomains": ["applinks:app.privatewallet.so"]
     },
     "android": {
       "adaptiveIcon": {
@@ -29,6 +29,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f866df55-2553-4361-b12f-3ee35f89b9b7"
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@onekeyhq/app-monorepo",
+  "name": "@privatekeyhq/app-monorepo",
   "private": true,
   "workspaces": [
     "packages/*"

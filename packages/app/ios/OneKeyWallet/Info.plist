@@ -36,6 +36,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tpoutside</string>
+		<string>imtokenv2</string>
+		<string>bitkeep</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NFCReaderUsageDescription</key>
@@ -89,6 +95,12 @@
 			<integer>4294967295</integer>
 		</dict>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>PlusJakartaSans-Bold.ttf</string>
+		<string>PlusJakartaSans-Medium.ttf</string>
+		<string>PlusJakartaSans-SemiBold.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -122,17 +134,5 @@
 		<string>D156000132834001</string>
 		<string>D1560001328300424C4400006E666301</string>
 	</array>
-	<key>UIAppFonts</key>
-	<array>
-		<string>PlusJakartaSans-Bold.ttf</string>
-		<string>PlusJakartaSans-Medium.ttf</string>
-		<string>PlusJakartaSans-SemiBold.ttf</string>
-	</array>
-	<key>LSApplicationQueriesSchemes</key>
-  <array>
-    <string>tpoutside</string>
-    <string>imtokenv2</string>
-    <string>bitkeep</string>
-  </array>
 </dict>
 </plist>
