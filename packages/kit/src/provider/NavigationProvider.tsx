@@ -1,16 +1,12 @@
 import { createRef, memo, useEffect, useMemo, useRef } from 'react';
 
-import {
-  DefaultTheme,
-  NavigationContainer,
-  NavigationContainerRef,
-} from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { RootSiblingParent } from 'react-native-root-siblings';
 
 import { useIsVerticalLayout, useThemeValue } from '@onekeyhq/components';
 import { useSettings } from '@onekeyhq/kit/src/hooks/redux';
 import RootStack from '@onekeyhq/kit/src/routes/Root';
-import { RootRoutesParams } from '@onekeyhq/kit/src/routes/types';
+import type { RootRoutesParams } from '@onekeyhq/kit/src/routes/types';
 import { analyticLogEvent } from '@onekeyhq/shared/src/analytics';
 import { setAttributes } from '@onekeyhq/shared/src/crashlytics';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
@@ -20,6 +16,8 @@ import '../routes/deepLink';
 import buildLinking from '../routes/linking';
 
 import RedirectProvider from './RedirectProvider';
+
+import type { NavigationContainerRef } from '@react-navigation/native';
 
 export type RootNavContainerRef = NavigationContainerRef<RootRoutesParams>;
 export const navigationRef = createRef<RootNavContainerRef>();
@@ -81,6 +79,10 @@ const NavigationApp = () => {
       distribution: platformEnv.distributionChannel ?? '',
     });
   }, [instanceId]);
+
+  global.$$onekeyPerfTrace?.log({
+    name: 'NavigationProvider/NavigationApp render',
+  });
 
   return (
     <NavigationContainer

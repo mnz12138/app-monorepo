@@ -1,4 +1,4 @@
-import { IOneKeyDeviceType } from '@onekeyhq/shared/types';
+import type { IOneKeyDeviceType } from '@onekeyhq/shared/types';
 
 import { T1Data, TouchData } from './homescreensData';
 
@@ -83,7 +83,6 @@ export const getHomescreenKeys = (type: IOneKeyDeviceType) => {
 export type HomescreenItem = {
   name: string;
   staticPath: any;
-  hex: string;
   height?: number;
   width?: number;
 };

@@ -1,7 +1,7 @@
-import Axios, { AxiosInstance } from 'axios';
+import Axios from 'axios';
 import BigNumber from 'bignumber.js';
 
-import { OnekeyNetwork } from '@onekeyhq/engine/src/presets/networkIds';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 
 import type {
   Cw20TokenBalance,
@@ -15,6 +15,7 @@ import type {
   Cw20AssetInfo,
   RelayerPaths,
 } from './mintScanTypes';
+import type { AxiosInstance } from 'axios';
 
 const NetworkIDMinScanMap: Record<string, string> = {
   [OnekeyNetwork.cryptoorgchain]: 'cryptoorg',

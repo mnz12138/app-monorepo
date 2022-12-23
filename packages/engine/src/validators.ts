@@ -3,30 +3,31 @@ import BigNumber from 'bignumber.js';
 import * as bip39 from 'bip39';
 import { isString } from 'lodash';
 
-import { IMPL_COSMOS } from '@onekeyhq/engine/src/constants';
-import { backgroundMethod } from '@onekeyhq/kit/src/background/decorators';
-import { Network } from '@onekeyhq/kit/src/store/typings';
-
+import type { Network } from '@onekeyhq/kit/src/store/typings';
+import { backgroundMethod } from '@onekeyhq/shared/src/background/backgroundDecorators';
 import {
   COINTYPE_BTC,
   IMPL_ADA,
   IMPL_BCH,
   IMPL_BTC,
+  IMPL_COSMOS,
   IMPL_DOGE,
   IMPL_LTC,
   IMPL_TBTC,
   SEPERATOR,
-} from './constants';
-import { DBAPI } from './dbs/base';
+} from '@onekeyhq/shared/src/engine/engineConsts';
+
 import * as errors from './errors';
 import { OneKeyValidatorError, OneKeyValidatorTip } from './errors';
 import * as limits from './limits';
 import { implToCoinTypes } from './managers/impl';
-import { DBUTXOAccount } from './types/account';
-import { UserInputCategory, UserInputCheckResult } from './types/credential';
+import { UserInputCategory } from './types/credential';
 import { WALLET_TYPE_HD, WALLET_TYPE_HW } from './types/wallet';
 
+import type { DBAPI } from './dbs/base';
 import type { Engine } from './index';
+import type { DBUTXOAccount } from './types/account';
+import type { UserInputCheckResult } from './types/credential';
 
 const FEE_LIMIT_HIGH_VALUE_TIMES = 20;
 const FEE_PRICE_HIGH_VALUE_TIMES = 4;

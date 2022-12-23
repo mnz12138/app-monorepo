@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import {
@@ -9,6 +9,7 @@ import {
   useNetworkTokensPrice,
   useThrottle,
 } from '../../../hooks';
+import { useSimpleTokenPriceValue } from '../../../hooks/useManegeTokenPrice';
 
 type TokenSearchRef = {
   keyword: string;
@@ -89,13 +90,17 @@ export const useTokenBalance = (token?: Token, accountId?: string) => {
 };
 
 export const useTokenPrice = (token?: Token) => {
-  const prices = useCachedPrices(token?.networkId);
+  // const prices = useCachedPrices(token?.networkId);
+  const price = useSimpleTokenPriceValue({
+    networkId: token?.networkId,
+    contractAdress: token?.tokenIdOnNetwork,
+  });
   return useMemo(() => {
     if (!token) {
       return undefined;
     }
-    return prices[token.tokenIdOnNetwork || 'main'];
-  }, [prices, token]);
+    return price;
+  }, [price, token]);
 };
 
 export function useSwapTokenList(networkId?: string) {

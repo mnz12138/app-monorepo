@@ -10,14 +10,15 @@ import {
 } from '@onekeyfe/blockchain-libs/dist/provider/chains/stc/provider';
 import { starcoin_types, utils } from '@starcoin/starcoin';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_STC as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_STC as COIN_TYPE } from '../../../constants';
 import { OneKeyHardwareError } from '../../../errors';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
 
+import type { DBSimpleAccount } from '../../../types/account';
 import type {
   IGetAddressParams,
   IPrepareHardwareAccountsParams,
@@ -74,7 +75,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       );
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   async signMessage(
@@ -108,7 +109,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
         if (!response.success) {
           debugLogger.common.error(response.payload);
-          throw deviceUtils.convertDeviceError(response.payload);
+          throw convertDeviceError(response.payload);
         }
         const { public_key, signature } = response.payload;
         if (type === 1) {
@@ -155,7 +156,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
       if (!response.success) {
         debugLogger.common.error(response.payload);
-        throw deviceUtils.convertDeviceError(response.payload);
+        throw convertDeviceError(response.payload);
       }
 
       pubkeys = response.payload
@@ -179,7 +180,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     }
     if (!addressesResponse.success) {
       debugLogger.common.error(addressesResponse.payload);
-      throw deviceUtils.convertDeviceError(addressesResponse.payload);
+      throw convertDeviceError(addressesResponse.payload);
     }
 
     const ret = [];
@@ -215,6 +216,6 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 }

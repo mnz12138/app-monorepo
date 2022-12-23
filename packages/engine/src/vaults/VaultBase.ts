@@ -1,23 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 /* eslint max-classes-per-file: "off" */
 
-import { ethers } from '@onekeyfe/blockchain-libs';
-import {
-  BaseClient,
-  BaseProvider,
-} from '@onekeyfe/blockchain-libs/dist/provider/abc';
-import {
-  PartialTokenInfo,
-  TransactionStatus,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 import BigNumber from 'bignumber.js';
 import { isNil } from 'lodash';
 
+import { HISTORY_CONSTS } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
-import { HISTORY_CONSTS } from '../constants';
 import simpleDb from '../dbs/simple/simpleDb';
 import {
   InvalidAddress,
@@ -25,17 +15,20 @@ import {
   NotImplemented,
   PendingQueueTooLong,
 } from '../errors';
-import { IMPL_MAPPINGS } from '../proxy';
-import { Account, DBAccount } from '../types/account';
-import { HistoryEntry, HistoryEntryStatus } from '../types/history';
-import { WalletType } from '../types/wallet';
+import { IMPL_MAPPINGS } from '../proxyUtils';
 
-import {
+import { IDecodedTxActionType, IDecodedTxDirection } from './types';
+import { VaultContext } from './VaultContext';
+
+import type { Account, DBAccount } from '../types/account';
+import type { HistoryEntry, HistoryEntryStatus } from '../types/history';
+import type { WalletType } from '../types/wallet';
+import type { IEncodedTxEvm } from './impl/evm/Vault';
+import type { KeyringBase, KeyringBaseMock } from './keyring/KeyringBase';
+import type {
   IApproveInfo,
   IDecodedTx,
   IDecodedTxAction,
-  IDecodedTxActionType,
-  IDecodedTxDirection,
   IDecodedTxLegacy,
   IEncodedTx,
   IEncodedTxUpdateOptions,
@@ -43,25 +36,34 @@ import {
   IFeeInfoUnit,
   IHistoryTx,
   ISetApprovalForAll,
+  ISignCredentialOptions,
+  ISignedTxPro,
   ITransferInfo,
   IUnsignedTxPro,
-} from './types';
-import { VaultContext } from './VaultContext';
-
-import type { IEncodedTxEvm } from './impl/evm/Vault';
-import type { KeyringBase, KeyringBaseMock } from './keyring/KeyringBase';
-import type {
-  ISignCredentialOptions,
-  ISignedTx,
   IVaultSettings,
 } from './types';
 import type { VaultHelperBase } from './VaultHelperBase';
-import type { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { ethers } from '@onekeyfe/blockchain-libs';
+import type {
+  BaseClient,
+  BaseProvider,
+} from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type {
+  PartialTokenInfo,
+  TransactionStatus,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 export type IVaultInitConfig = {
   keyringCreator: (vault: VaultBase) => Promise<KeyringBase>;
 };
 export type IKeyringMapKey = WalletType;
+
+if (platformEnv.isExtensionUi) {
+  debugger;
+  throw new Error('engine/VaultBase is not allowed imported from ui');
+}
 
 export abstract class VaultBaseChainOnly extends VaultContext {
   abstract settings: IVaultSettings;
@@ -168,6 +170,10 @@ export abstract class VaultBaseChainOnly extends VaultContext {
     );
   }
 
+  getTransactionFeeInNative(txid: string): Promise<string> {
+    return Promise.resolve('');
+  }
+
   async isContractAddress(address: string): Promise<boolean> {
     return false;
   }
@@ -258,7 +264,7 @@ export abstract class VaultBase extends VaultBaseChainOnly {
 
   // DO NOT override this method
   async signTransaction(
-    unsignedTx: UnsignedTx,
+    unsignedTx: IUnsignedTxPro,
     options: ISignCredentialOptions,
   ) {
     return this.keyring.signTransaction(unsignedTx, options);
@@ -269,7 +275,7 @@ export abstract class VaultBase extends VaultBaseChainOnly {
     unsignedTx: IUnsignedTxPro,
     options: ISignCredentialOptions,
     signOnly: boolean,
-  ): Promise<ISignedTx> {
+  ): Promise<ISignedTxPro> {
     const signedTx = await this.signTransaction(unsignedTx, options);
     if (signOnly) {
       return { ...signedTx, encodedTx: unsignedTx.encodedTx };
@@ -281,9 +287,9 @@ export abstract class VaultBase extends VaultBaseChainOnly {
   }
 
   async broadcastTransaction(
-    signedTx: ISignedTx,
+    signedTx: ISignedTxPro,
     options?: any,
-  ): Promise<ISignedTx> {
+  ): Promise<ISignedTxPro> {
     debugLogger.engine.info('broadcastTransaction START:', {
       rawTx: signedTx.rawTx,
     });
@@ -334,6 +340,13 @@ export abstract class VaultBase extends VaultBaseChainOnly {
     tokenAddress: string,
     spenderAddress: string,
   ): Promise<BigNumber> {
+    throw new NotImplemented();
+  }
+
+  async batchTokensAllowance(
+    tokenAddress: string,
+    spenderAddress: string[],
+  ): Promise<number[]> {
     throw new NotImplemented();
   }
 
@@ -457,7 +470,7 @@ export abstract class VaultBase extends VaultBaseChainOnly {
     historyTxToMerge?: IHistoryTx;
     encodedTx?: IEncodedTx | null;
     decodedTx: IDecodedTx;
-    signedTx?: ISignedTx;
+    signedTx?: ISignedTxPro;
     isSigner?: boolean;
     isLocalCreated?: boolean;
   }): Promise<IHistoryTx> {
@@ -594,5 +607,12 @@ export abstract class VaultBase extends VaultBaseChainOnly {
    */
   getFetchBalanceAddress(account: DBAccount | Account) {
     return Promise.resolve(account.address);
+  }
+
+  getPrivateKeyByCredential(credential: string): Buffer | undefined {
+    return Buffer.from(
+      credential.startsWith('0x') ? credential.slice(2) : credential,
+      'hex',
+    );
   }
 }

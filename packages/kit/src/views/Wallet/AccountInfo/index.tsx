@@ -1,4 +1,5 @@
-import { FC, useMemo, useRef } from 'react';
+import type { FC } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
@@ -24,22 +25,30 @@ import {
 import { useManageTokens } from '@onekeyhq/kit/src/hooks/useManageTokens';
 import { ReceiveTokenRoutes } from '@onekeyhq/kit/src/routes/Modal/routes';
 import type { ReceiveTokenRoutesParams } from '@onekeyhq/kit/src/routes/Modal/types';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
 import {
   ModalRoutes,
-  ModalScreenProps,
   RootRoutes,
   TabRoutes,
 } from '@onekeyhq/kit/src/routes/types';
-import { SendRoutesParams } from '@onekeyhq/kit/src/views/Send/types';
+import type { SendRoutesParams } from '@onekeyhq/kit/src/views/Send/types';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { useNavigationActions } from '../../../hooks';
 import { useCopyAddress } from '../../../hooks/useCopyAddress';
+import { useManageTokenprices } from '../../../hooks/useManegeTokenPrice';
 import { useNFTPrice } from '../../../hooks/useTokens';
 import { SWAP_TAB_NAME } from '../../../store/reducers/market';
-import { calculateGains, getSummedValues } from '../../../utils/priceUtils';
+import { getTimeDurationMs } from '../../../utils/helper';
+import {
+  calculateGains,
+  getPreBaseValue,
+  getSummedValues,
+} from '../../../utils/priceUtils';
 import { showAccountMoreMenu } from '../../Overlay/AccountMoreMenu';
 import { showAccountValueSettings } from '../../Overlay/AccountValueSettings';
+
+import type { SimpleTokenPrices } from '../../../store/reducers/tokens';
 
 type NavigationProps = ModalScreenProps<ReceiveTokenRoutesParams> &
   ModalScreenProps<SendRoutesParams>;
@@ -54,15 +63,24 @@ const AccountAmountInfo: FC = () => {
     (s) => s.settings,
   );
 
-  const { account, wallet, network } = useActiveWalletAccount();
+  const { account, wallet, network, networkId, accountId } =
+    useActiveWalletAccount();
   const nftPrice = useNFTPrice({
     accountId: account?.address,
     networkId: network?.id,
   });
 
-  const { accountTokens, prices, balances, charts } = useManageTokens({
+  const { accountTokens, balances } = useManageTokens({
     pollingInterval: 15000,
   });
+
+  const { prices } = useManageTokenprices({
+    networkId,
+    accountId,
+    pollingInterval: getTimeDurationMs({ minute: 5 }),
+  });
+
+  const vsCurrency = useAppSelector((s) => s.settings.selectedFiatMoneySymbol);
 
   const { copyAddress } = useCopyAddress({ wallet });
 
@@ -71,6 +89,7 @@ const AccountAmountInfo: FC = () => {
       tokens: accountTokens,
       balances,
       prices,
+      vsCurrency,
       hideSmallBalance,
     }).toNumber();
 
@@ -104,30 +123,38 @@ const AccountAmountInfo: FC = () => {
     includeNFTsInTotal,
     nftPrice,
     prices,
+    vsCurrency,
   ]);
 
   const changedValueComp = useMemo(() => {
-    const basePrices: Record<string, number> = {};
+    const basePrices: Record<string, SimpleTokenPrices> = {};
     accountTokens.forEach((token) => {
-      const tokenId = token.tokenIdOnNetwork || 'main';
+      const tokenId = token?.tokenIdOnNetwork || 'main';
+      const priceId = token?.tokenIdOnNetwork
+        ? `${token?.networkId}-${token.tokenIdOnNetwork}`
+        : token?.networkId ?? '';
       const balance = balances[tokenId];
+      const priceInfo = prices?.[priceId];
       if (typeof balance !== 'undefined') {
-        basePrices[tokenId] = charts[tokenId]?.[0]?.[1] ?? 0;
+        basePrices[priceId] = getPreBaseValue({
+          priceInfo,
+          vsCurrency,
+        });
       }
     });
     const displayBaseValue = getSummedValues({
       tokens: accountTokens,
       balances,
       prices: basePrices,
+      vsCurrency,
       hideSmallBalance,
     }).toNumber();
-
     const { gain, percentageGain, gainTextColor } = calculateGains({
       basePrice: displayBaseValue,
       price: summedValue,
     });
 
-    return Number.isNaN(displayBaseValue) ? (
+    return Number.isNaN(summedValue) ? (
       <Skeleton shape="Body1" />
     ) : (
       <>
@@ -140,7 +167,15 @@ const AccountAmountInfo: FC = () => {
         </Typography.Body1Strong>
       </>
     );
-  }, [accountTokens, balances, charts, hideSmallBalance, intl, summedValue]);
+  }, [
+    accountTokens,
+    balances,
+    hideSmallBalance,
+    intl,
+    prices,
+    summedValue,
+    vsCurrency,
+  ]);
 
   return (
     <Box alignItems="flex-start">

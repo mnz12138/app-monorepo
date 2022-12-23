@@ -1,4 +1,5 @@
-import React, { FC, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
@@ -13,21 +14,19 @@ import {
   ToggleButtonGroup,
   useIsVerticalLayout,
 } from '@onekeyhq/components';
-import { Network } from '@onekeyhq/engine/src/types/network';
+import type { Network } from '@onekeyhq/engine/src/types/network';
 
-import { HomeRoutes, HomeRoutesParams } from '../../../../routes/types';
+import { HomeRoutes } from '../../../../routes/types';
 import ChainSelector from '../../ChainSelector';
 import DateSelector from '../../DateSelector';
 import { useDefaultNetWork } from '../hook';
 
-import {
-  StatsListContext,
-  StatsListContextValue,
-  useStatsListContext,
-} from './context';
+import { StatsListContext, useStatsListContext } from './context';
 import MarketCap from './MarketCap';
 import Ranking from './Ranking';
 
+import type { HomeRoutesParams } from '../../../../routes/types';
+import type { StatsListContextValue } from './context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavigationProps = NativeStackNavigationProp<
@@ -226,8 +225,10 @@ const StatsModule = () => {
     selectedTime: 2,
   });
 
+  const contextValue = useMemo(() => ({ context, setContext }), [context]);
+
   return (
-    <StatsListContext.Provider value={{ context, setContext }}>
+    <StatsListContext.Provider value={contextValue}>
       <ListHeader />
       <StatsList />
     </StatsListContext.Provider>

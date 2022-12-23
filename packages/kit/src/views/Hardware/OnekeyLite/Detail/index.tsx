@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
@@ -15,27 +16,26 @@ import {
   Text,
   useLocale,
 } from '@onekeyhq/components';
-import { OnCloseCallback } from '@onekeyhq/components/src/Dialog/components/FooterButton';
-import { SelectItem } from '@onekeyhq/components/src/Select';
-import { Wallet } from '@onekeyhq/engine/src/types/wallet';
+import type { OnCloseCallback } from '@onekeyhq/components/src/Dialog/components/FooterButton';
+import type { SelectItem } from '@onekeyhq/components/src/Select';
+import type { Wallet } from '@onekeyhq/engine/src/types/wallet';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import WalletAvatar from '@onekeyhq/kit/src/components/WalletSelector/WalletAvatar';
 import WebView from '@onekeyhq/kit/src/components/WebView';
 import { useActiveWalletAccount } from '@onekeyhq/kit/src/hooks/redux';
-import {
-  CreateWalletModalRoutes,
+import type {
   CreateWalletRoutesParams,
-  OnekeyLiteChangePinModalRoutes,
   OnekeyLiteChangePinRoutesParams,
-  OnekeyLiteResetModalRoutes,
   OnekeyLiteResetRoutesParams,
 } from '@onekeyhq/kit/src/routes';
-import { BackupWalletModalRoutes } from '@onekeyhq/kit/src/routes/Modal/BackupWallet';
 import {
-  ModalRoutes,
-  ModalScreenProps,
-  RootRoutes,
-} from '@onekeyhq/kit/src/routes/types';
+  CreateWalletModalRoutes,
+  OnekeyLiteChangePinModalRoutes,
+  OnekeyLiteResetModalRoutes,
+} from '@onekeyhq/kit/src/routes';
+import { BackupWalletModalRoutes } from '@onekeyhq/kit/src/routes/Modal/BackupWallet';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import { ModalRoutes, RootRoutes } from '@onekeyhq/kit/src/routes/types';
 
 type OptionType = 'restore' | 'change_pin' | 'reset' | 'backup';
 
@@ -43,7 +43,7 @@ type NavigationProps = ModalScreenProps<CreateWalletRoutesParams> &
   ModalScreenProps<OnekeyLiteChangePinRoutesParams> &
   ModalScreenProps<OnekeyLiteResetRoutesParams>;
 
-const OnekeyLiteDetail: React.FC = () => {
+const OnekeyLiteDetail: FC = () => {
   const intl = useIntl();
   const navigation = useNavigation<NavigationProps['navigation']>();
   const { locale } = useLocale();
@@ -78,7 +78,7 @@ const OnekeyLiteDetail: React.FC = () => {
     main();
   }, [wallet]);
 
-  useEffect(() => {
+  const menuOptionsMemo = useMemo(() => {
     const menuOptions: SelectItem<OptionType>[] = [];
     menuOptions.push({
       label: intl.formatMessage({
@@ -95,6 +95,7 @@ const OnekeyLiteDetail: React.FC = () => {
       value: 'change_pin',
       iconProps: { name: 'PencilAltOutline' },
     });
+
     menuOptions.push({
       label: intl.formatMessage({
         id: 'action__reset_onekey_lite',
@@ -104,34 +105,43 @@ const OnekeyLiteDetail: React.FC = () => {
       color: 'icon-critical',
     });
 
+    return menuOptions;
+  }, [intl]);
+
+  const headerRightSelect = useCallback(
+    () => (
+      <Select
+        dropdownPosition="right"
+        title={intl.formatMessage({ id: 'app__hardware_name_onekey_lite' })}
+        onChange={(v) => {
+          if (currentOptionType !== v) setCurrentOptionType(v);
+        }}
+        footer={null}
+        activatable={false}
+        triggerProps={{
+          width: '40px',
+        }}
+        dropdownProps={{
+          width: 248,
+        }}
+        options={menuOptionsMemo}
+        renderTrigger={() => (
+          <Box mr={Platform.OS !== 'android' ? 4 : 0} alignItems="flex-end">
+            <Icon name="DotsHorizontalOutline" />
+          </Box>
+        )}
+      />
+    ),
+    [intl, menuOptionsMemo, currentOptionType],
+  );
+
+  useEffect(() => {
     navigation.setOptions({
       title: intl.formatMessage({ id: 'app__hardware_name_onekey_lite' }),
-      headerRight: () => (
-        <Select
-          dropdownPosition="right"
-          title={intl.formatMessage({ id: 'app__hardware_name_onekey_lite' })}
-          onChange={(v) => {
-            if (currentOptionType !== v) setCurrentOptionType(v);
-          }}
-          footer={null}
-          activatable={false}
-          triggerProps={{
-            width: '40px',
-          }}
-          dropdownProps={{
-            width: 248,
-          }}
-          options={menuOptions}
-          renderTrigger={() => (
-            <Box mr={Platform.OS !== 'android' ? 4 : 0} alignItems="flex-end">
-              <Icon name="DotsHorizontalOutline" />
-            </Box>
-          )}
-        />
-      ),
+      headerRight: () => headerRightSelect(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intl, navigation]);
+  }, [intl, menuOptionsMemo, navigation]);
 
   const startRestorePinVerifyModal = () => {
     navigation.navigate(RootRoutes.Modal, {

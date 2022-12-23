@@ -1,4 +1,4 @@
-import { AddEVMNetworkParams } from '@onekeyhq/engine/src/types/network';
+import type { AddEVMNetworkParams } from '@onekeyhq/engine/src/types/network';
 
 import { ManageNetworkRoutes } from '../../routes/routesEnum';
 
@@ -6,6 +6,7 @@ export { ManageNetworkRoutes };
 
 export type ManageNetworkRoutesParams = {
   [ManageNetworkRoutes.NetworkAccountSelector]: undefined;
+  [ManageNetworkRoutes.NetworkSelector]: undefined;
   [ManageNetworkRoutes.Listing]: { onEdited?: () => void } | undefined;
   [ManageNetworkRoutes.AddNetwork]: {
     mode?: 'add' | 'edit';

@@ -3,23 +3,18 @@
  */
 import { splitSignature } from '@ethersproject/bytes';
 import { keccak256 } from '@ethersproject/keccak256';
-import { UnsignedTransaction, serialize } from '@ethersproject/transactions';
+import { serialize } from '@ethersproject/transactions';
 import { toBigIntHex } from '@onekeyfe/blockchain-libs/dist/basic/bignumber-plus';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import { web3Errors } from '@onekeyfe/cross-inpage-provider-errors';
-import { Success, Unsuccessful } from '@onekeyfe/hd-core';
 import { BigNumber } from 'bignumber.js';
 import { TypedDataUtils } from 'eth-sig-util';
 
 import type { IPrepareHardwareAccountsParams } from '@onekeyhq/engine/src/vaults/types';
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
 import { isHexString } from '@onekeyhq/kit/src/utils/helper';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { IMPL_EVM } from '@onekeyhq/shared/src/engine/engineConsts';
+import * as engineUtils from '@onekeyhq/shared/src/engine/engineUtils';
 
-import { IMPL_EVM } from './constants';
-import * as engineUtils from './engineUtils';
 import {
   NotImplemented,
   OneKeyHardwareError,
@@ -29,10 +24,17 @@ import { ETHMessageTypes } from './types/message';
 
 import type { IUnsignedMessageEvm } from './vaults/impl/evm/Vault';
 import type { WalletPassphraseState } from './vaults/keyring/KeyringHardwareBase';
+import type { UnsignedTransaction } from '@ethersproject/transactions';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import type {
   CoreApi,
   EVMTransaction,
   EVMTransactionEIP1559,
+  Success,
+  Unsuccessful,
 } from '@onekeyfe/hd-core';
 
 /**
@@ -68,7 +70,7 @@ export async function ethereumGetAddress(
     });
   }
 
-  throw deviceUtils.convertDeviceError(response.payload);
+  throw convertDeviceError(response.payload);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -118,7 +120,7 @@ export async function solanaGetAddress(
 
 function getResultFromResponse<T>(response: Unsuccessful | Success<T>): T {
   if (!response.success) {
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
   return response.payload;
 }
@@ -170,7 +172,7 @@ export async function ethereumSignMessage({
     });
 
     if (!res.success) {
-      throw deviceUtils.convertDeviceError(res.payload);
+      throw convertDeviceError(res.payload);
     }
 
     const result = getResultFromResponse(res);
@@ -208,7 +210,7 @@ export async function ethereumSignMessage({
     });
 
     if (!res.success) {
-      throw deviceUtils.convertDeviceError(res.payload);
+      throw convertDeviceError(res.payload);
     }
 
     const result = getResultFromResponse(res);
@@ -326,7 +328,7 @@ export async function ethereumSignTransaction(
     const txid = keccak256(rawTx);
     return { txid, rawTx };
   }
-  throw deviceUtils.convertDeviceError(response.payload);
+  throw convertDeviceError(response.payload);
 }
 
 export async function getXpubs(
@@ -387,5 +389,5 @@ export async function getXpubs(
       },
     ];
   }
-  throw deviceUtils.convertDeviceError(response.payload);
+  throw convertDeviceError(response.payload);
 }

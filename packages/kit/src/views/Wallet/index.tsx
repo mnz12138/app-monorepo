@@ -1,4 +1,5 @@
-import React, { FC, useCallback, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useIntl } from 'react-intl';
 
@@ -9,15 +10,16 @@ import {
   useUserDevice,
 } from '@onekeyhq/components';
 import { Tabs } from '@onekeyhq/components/src/CollapsibleTabView';
-import { MAX_PAGE_CONTAINER_WIDTH } from '@onekeyhq/kit/src/config';
 import {
   useActiveWalletAccount,
   useAppSelector,
 } from '@onekeyhq/kit/src/hooks/redux';
+import { MAX_PAGE_CONTAINER_WIDTH } from '@onekeyhq/shared/src/config/appConfig';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
 import IdentityAssertion from '../../components/IdentityAssertion';
+import { OneKeyPerfTraceLog } from '../../components/OneKeyPerfTraceLog';
 import { useOnboardingRequired } from '../../hooks/useOnboardingRequired';
 import { setHomeTabName } from '../../store/reducers/status';
 import OfflineView from '../Offline';
@@ -83,7 +85,6 @@ const WalletTabs: FC = () => {
                 activeAccountId: account.id,
                 activeNetworkId: network.id,
                 withBalance: true,
-                withPrice: true,
                 wait: true,
                 forceReloadTokens: true,
               });
@@ -132,6 +133,7 @@ const WalletTabs: FC = () => {
               ListFooterComponent={<Box h={16} />}
               limitSize={20}
             />
+            <OneKeyPerfTraceLog name="App RootTabHome AssetsList render" />
             <GuideToPushFirstTimeCheck />
           </>
         </Tabs.Tab>

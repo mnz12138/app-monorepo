@@ -4,8 +4,7 @@ import * as BitcoinJS from 'bitcoinjs-lib';
 import bs58check from 'bs58check';
 import memoziee from 'memoizee';
 
-import {
-  AddressEncodings,
+import type {
   AddressValidation,
   ChainInfo,
   SignedTx,
@@ -15,10 +14,13 @@ import {
   UTXO,
   UnsignedTx,
 } from '@onekeyhq/engine/src/vaults/utils/btcForkChain/types';
+import { AddressEncodings } from '@onekeyhq/engine/src/vaults/utils/btcForkChain/types';
 
 import { getBlockBook } from './blockbook';
-import { Network, getNetwork } from './networks';
+import { getNetwork } from './networks';
 import { PLACEHOLDER_VSIZE, estimateVsize, loadOPReturn } from './vsize';
+
+import type { Network } from './networks';
 
 type GetAccountParams =
   | {
@@ -209,6 +211,32 @@ class Provider {
   }
 
   getAccount(params: GetAccountParams, addressEncoding?: AddressEncodings) {
+    const usedXpub = this.getEncodingXpub(params, addressEncoding);
+
+    let requestParams = {};
+    switch (params.type) {
+      case 'simple':
+        requestParams = { details: 'basic' };
+        break;
+      case 'details':
+        requestParams = { details: 'tokenBalances', tokens: 'derived' };
+        break;
+      case 'history':
+        requestParams = { details: 'txs', pageSize: 50, to: params.to };
+        break;
+      default:
+      // no-op
+    }
+
+    return this.blockbook.then((client) =>
+      client.getAccount(usedXpub, requestParams),
+    );
+  }
+
+  private getEncodingXpub(
+    params: GetAccountParams,
+    addressEncoding?: AddressEncodings,
+  ) {
     const decodedXpub = bs58check.decode(params.xpub);
     check(this.isValidXpub(decodedXpub));
     const versionBytes = parseInt(decodedXpub.slice(0, 4).toString('hex'), 16);
@@ -231,23 +259,19 @@ class Provider {
       // no-op
     }
 
-    let requestParams = {};
-    switch (params.type) {
-      case 'simple':
-        requestParams = { details: 'basic' };
-        break;
-      case 'details':
-        requestParams = { details: 'tokenBalances', tokens: 'derived' };
-        break;
-      case 'history':
-        requestParams = { details: 'txs', pageSize: 50, to: params.to };
-        break;
-      default:
-      // no-op
-    }
+    return usedXpub;
+  }
 
+  getHistory(
+    params: GetAccountParams,
+    network: string,
+    address: string,
+    symbol: string,
+    decimals: number,
+  ) {
+    const usedXpub = this.getEncodingXpub(params);
     return this.blockbook.then((client) =>
-      client.getAccount(usedXpub, requestParams),
+      client.getHistory(network, address, usedXpub, symbol, decimals),
     );
   }
 

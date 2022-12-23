@@ -1,10 +1,11 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { MessageDescriptor, useIntl } from 'react-intl';
+import { useIntl } from 'react-intl';
 
+import type { ICON_NAMES } from '@onekeyhq/components';
 import {
   Box,
-  ICON_NAMES,
   Icon,
   Text,
   useIsVerticalLayout,
@@ -12,16 +13,16 @@ import {
 } from '@onekeyhq/components';
 import PressableItem from '@onekeyhq/components/src/Pressable/PressableItem';
 import { formatMessage } from '@onekeyhq/components/src/Provider';
-import { SelectProps } from '@onekeyhq/components/src/Select';
+import type { SelectProps } from '@onekeyhq/components/src/Select';
+import { isCoinTypeCompatibleWithImpl } from '@onekeyhq/engine/src/managers/impl';
+import type { AccountDynamicItem } from '@onekeyhq/engine/src/managers/notification';
 import {
   IMPL_APTOS,
   IMPL_EVM,
   IMPL_SUI,
   enabledAccountDynamicNetworkIds,
-} from '@onekeyhq/engine/src/constants';
-import { isPassphraseWallet } from '@onekeyhq/engine/src/engineUtils';
-import { isCoinTypeCompatibleWithImpl } from '@onekeyhq/engine/src/managers/impl';
-import { AccountDynamicItem } from '@onekeyhq/engine/src/managers/notification';
+} from '@onekeyhq/shared/src/engine/engineConsts';
+import { isPassphraseWallet } from '@onekeyhq/shared/src/engine/engineUtils';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
 import { useActiveWalletAccount, useNavigation } from '../../hooks';
@@ -30,9 +31,14 @@ import { FiatPayRoutes } from '../../routes/Modal/FiatPay';
 import { ModalRoutes, RootRoutes } from '../../routes/routesEnum';
 import { setPushNotificationConfig } from '../../store/reducers/settings';
 import { showOverlay } from '../../utils/overlayUtils';
-import { useEnabledAccountDynamicAccounts } from '../PushNotification/hooks';
+import {
+  useAddressCanSubscribe,
+  useEnabledAccountDynamicAccounts,
+} from '../PushNotification/hooks';
 
 import { OverlayPanel } from './OverlayPanel';
+
+import type { MessageDescriptor } from 'react-intl';
 
 const NeedActivateAccountImpl = [IMPL_APTOS, IMPL_SUI];
 
@@ -58,6 +64,8 @@ const AccountMoreSettings: FC<{ closeOverlay: () => void }> = ({
     [enabledAccounts, account],
   );
 
+  const addressCanSubscribe = useAddressCanSubscribe(account);
+
   useEffect(() => {
     (async () => {
       if (!network) return false;
@@ -81,6 +89,7 @@ const AccountMoreSettings: FC<{ closeOverlay: () => void }> = ({
   const showSubscriptionIcon =
     !!account &&
     !loading &&
+    addressCanSubscribe &&
     enabledAccountDynamicNetworkIds.includes(network?.id || '') &&
     isCoinTypeCompatibleWithImpl(account.coinType, IMPL_EVM);
 

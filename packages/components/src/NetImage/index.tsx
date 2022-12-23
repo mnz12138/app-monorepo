@@ -1,4 +1,5 @@
-import { FC, useCallback, useMemo, useRef, useState } from 'react';
+import type { FC } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 
 import { Pressable } from 'native-base';
 
@@ -7,9 +8,10 @@ import { useIsMounted } from '@onekeyhq/kit/src/hooks/useIsMounted';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import { PlatformImage } from './PlatformImage';
-import { ImageProps, ImageState } from './type';
 
-export const Image: FC<ImageProps & { onPress?: () => void }> = ({
+import type { ImageProps, ImageState } from './type';
+
+const BaseImage: FC<ImageProps & { onPress?: () => void }> = ({
   retry = 0,
   retryDuring = 5000,
   fallbackElement,
@@ -111,6 +113,8 @@ export const Image: FC<ImageProps & { onPress?: () => void }> = ({
   );
 };
 
+export const Image = memo(BaseImage);
+
 const NetImage: FC<ImageProps> = ({ preview = false, ...rest }) => {
   const { src } = rest;
   const [isVisible, setIsVisible] = useState(false);
@@ -137,4 +141,4 @@ const NetImage: FC<ImageProps> = ({ preview = false, ...rest }) => {
   return <Image {...rest} />;
 };
 
-export default NetImage;
+export default memo(NetImage);

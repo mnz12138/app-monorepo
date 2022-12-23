@@ -1,37 +1,26 @@
-import React, {
-  FC,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
 
 import { Box, Button, Hidden, IconButton } from '@onekeyhq/components';
-import {
-  ModalRoutes,
-  ModalScreenProps,
-  RootRoutes,
-} from '@onekeyhq/kit/src/routes/types';
-import platformEnv from '@onekeyhq/shared/src/platformEnv';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import { ModalRoutes, RootRoutes } from '@onekeyhq/kit/src/routes/types';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
-import { HomeRoutes } from '../../../routes/routesEnum';
-import { HomeRoutesParams } from '../../../routes/types';
-import {
-  NFTAttributeFilterRoutes,
-  NFTAttributeFilterRoutesParams,
-} from '../NFTAttributesModal/type';
+import { NFTMarketRoutes } from '../Modals/type';
 
-import {
-  CollectionDetailContext,
-  CollectionDetailContextValue,
-} from './context';
+import { CollectionDetailContext } from './context';
 import Screen from './Screen';
 
-type NavigationProps = ModalScreenProps<NFTAttributeFilterRoutesParams>;
+import type { HomeRoutes } from '../../../routes/routesEnum';
+import type { HomeRoutesParams } from '../../../routes/types';
+import type { NFTMarketRoutesParams } from '../Modals/type';
+import type { CollectionDetailContextValue } from './context';
+import type { RouteProp } from '@react-navigation/core';
+
+type NavigationProps = ModalScreenProps<NFTMarketRoutesParams>;
 
 const FilterButton: FC<{ onPress?: () => void; isDisabled?: boolean }> = ({
   onPress,
@@ -43,8 +32,9 @@ const FilterButton: FC<{ onPress?: () => void; isDisabled?: boolean }> = ({
       <Hidden from="md">
         <IconButton
           isDisabled={isDisabled}
-          name="BarsShrinkMini"
-          size="sm"
+          name="BarsShrinkOutline"
+          size="lg"
+          type="plain"
           circle
           onPress={onPress}
         />
@@ -95,13 +85,9 @@ const CollectionDetail = () => {
   const { collection: ctxCollection } = context;
   useEffect(() => {
     if (ctxCollection) {
-      let mr = platformEnv.isWeb ? '32px' : '16px';
-      if (platformEnv.isNativeAndroid) {
-        mr = '0px';
-      }
       navigation.setOptions({
         headerRight: () => (
-          <Box mr={mr}>
+          <Box mr={{ base: 2.5, md: 8 }}>
             <FilterButton
               isDisabled={
                 ctxCollection.attributes &&
@@ -109,9 +95,9 @@ const CollectionDetail = () => {
               }
               onPress={() => {
                 navigation.navigate(RootRoutes.Modal, {
-                  screen: ModalRoutes.NFTAttributeFilter,
+                  screen: ModalRoutes.NFTMarket,
                   params: {
-                    screen: NFTAttributeFilterRoutes.FilterModal,
+                    screen: NFTMarketRoutes.FilterModal,
                     params: {
                       collection: ctxCollection,
                       attributes: context.attributes,
@@ -129,13 +115,13 @@ const CollectionDetail = () => {
             />
             {isFilter && (
               <Box
-                top="-2px"
-                right="0px"
+                top={{ base: 1, md: -1.5 }}
+                right={{ base: 1, md: -1.5 }}
                 position="absolute"
-                size="10px"
+                size="12px"
                 bgColor="interactive-default"
                 borderRadius="full"
-                borderWidth="1px"
+                borderWidth="2px"
                 borderColor="background-default"
               />
             )}
@@ -163,8 +149,9 @@ const CollectionDetail = () => {
     })();
   }, [contractAddress, networkId, serviceNFT]);
 
+  const contextValue = useMemo(() => ({ context, setContext }), [context]);
   return (
-    <CollectionDetailContext.Provider value={{ context, setContext }}>
+    <CollectionDetailContext.Provider value={contextValue}>
       <Screen />
     </CollectionDetailContext.Provider>
   );

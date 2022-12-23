@@ -1,10 +1,11 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import axios from 'axios';
 import { Column, Row } from 'native-base';
 import { useIntl } from 'react-intl';
-import { ListRenderItem, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import {
   Alert,
@@ -26,13 +27,11 @@ import { SubmitRequestRoutes } from '../../../routes';
 import { ModalRoutes, RootRoutes } from '../../../routes/routesEnum';
 
 import { listUri } from './TicketService';
-import {
-  HistoryRequestModalRoutesParams,
-  HistoryRequestRoutes,
-  TicketType,
-} from './types';
+import { HistoryRequestRoutes } from './types';
 
+import type { HistoryRequestModalRoutesParams, TicketType } from './types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { ListRenderItem } from 'react-native';
 
 type NavigationProps = NativeStackNavigationProp<
   HistoryRequestModalRoutesParams,
@@ -115,6 +114,9 @@ export const HistoryRequest: FC = () => {
       case 'empty':
         return (
           <>
+            <Box position="absolute" top={0} left={0} right={0}>
+              {HintView}
+            </Box>
             <Empty
               emoji="💬"
               title={intl.formatMessage({ id: 'title__no_request_history' })}
@@ -126,9 +128,6 @@ export const HistoryRequest: FC = () => {
               })}
               handleAction={SubmitRequestAction}
             />
-            <Box position="absolute" top={0} width={`${width - 32}px`}>
-              {HintView}
-            </Box>
           </>
         );
       case 'loading':
@@ -240,7 +239,12 @@ export const HistoryRequest: FC = () => {
       }
     >
       {pageStatus !== 'data' ? (
-        <Box flex={1} alignItems="center" justifyContent="center">
+        <Box
+          flex={1}
+          alignItems="center"
+          justifyContent="center"
+          position="relative"
+        >
           {noData()}
         </Box>
       ) : null}

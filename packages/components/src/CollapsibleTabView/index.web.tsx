@@ -1,28 +1,25 @@
-import React, {
+import type {
   CSSProperties,
-  Children,
   ComponentProps,
   FC,
   ReactElement,
   ReactNode,
-  createContext,
-  useContext,
-  useMemo,
+  SyntheticEvent,
 } from 'react';
+import { Children, createContext, useContext, useMemo, useState } from 'react';
 
 import MaterialTab from '@mui/material/Tab';
 import MaterialTabs from '@mui/material/Tabs';
-import { StyleProp, ViewStyle } from 'react-native';
-import { Container as BaseContainer } from 'react-native-collapsible-tab-view';
 import { useDeepCompareMemo } from 'use-deep-compare';
-
-import { Body2StrongProps } from '@onekeyhq/components/src/Typography';
 
 import Box from '../Box';
 import FlatList from '../FlatList';
 import { useIsVerticalLayout, useThemeValue } from '../Provider/hooks';
 import ScrollView from '../ScrollView';
 import SectionList from '../SectionList';
+
+import type { StyleProp, ViewStyle } from 'react-native';
+import type { Container as BaseContainer } from 'react-native-collapsible-tab-view';
 
 type TabProps = {
   name: string;
@@ -32,7 +29,7 @@ type TabProps = {
 
 type MaterialTabsProps = {
   value: string;
-  handleChange: (event: React.SyntheticEvent, value: any) => void;
+  handleChange: (event: SyntheticEvent, value: any) => void;
   names: string[];
   options: Map<string, { index: number } & TabProps>;
   activeColor?: string;
@@ -149,8 +146,8 @@ const Container: FC<ContainerProps> = ({
 }) => {
   const { options, names } = useTabProps(children as any, Tab);
 
-  const [value, setValue] = React.useState(initialTabName || names[0]);
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const [value, setValue] = useState(initialTabName || names[0]);
+  const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue);
     const index = names.findIndex((item) => item === newValue);
 
@@ -184,7 +181,7 @@ const Container: FC<ContainerProps> = ({
             activeColor={activeLabelColor}
             inactiveColor={labelColor}
             labelStyle={{
-              ...Body2StrongProps,
+              fontFamily: 'BlinkMacSystemFont',
             }}
             indicatorStyle={{ backgroundColor: indicatorColor }}
             handleChange={handleChange}

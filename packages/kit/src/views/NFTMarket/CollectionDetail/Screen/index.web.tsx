@@ -1,6 +1,7 @@
-import React, { ComponentProps, FC } from 'react';
+import type { ComponentProps, FC } from 'react';
+import { memo } from 'react';
 
-import { RouteProp, useRoute } from '@react-navigation/core';
+import { useRoute } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
 
 import {
@@ -11,17 +12,19 @@ import {
   useIsVerticalLayout,
 } from '@onekeyhq/components';
 
-import { HomeRoutes } from '../../../../routes/routesEnum';
-import { HomeRoutesParams } from '../../../../routes/types';
 import AssetsList from '../AssetsList';
 import CollectionInfo from '../CollectionInfo';
 import { useCollectionDetailContext } from '../context';
 import TransactionList, {
-  ListHeader as TransactionListHeader,
+  ListHeader as BaseTransactionListHeader,
 } from '../TransactionList';
 import { TabEnum } from '../type';
 
-const MemoCollectionInfo = React.memo(CollectionInfo);
+import type { HomeRoutes } from '../../../../routes/routesEnum';
+import type { HomeRoutesParams } from '../../../../routes/types';
+import type { RouteProp } from '@react-navigation/core';
+
+const MemoCollectionInfo = memo(CollectionInfo);
 
 type TabBarProps = {
   items: { title: string; label: string }[];
@@ -90,7 +93,7 @@ const AssetHeader = () => {
   const setContext = useCollectionDetailContext()?.setContext;
   return (
     <Box flexDirection="column" alignItems="flex-start">
-      <MemoCollectionInfo />
+      <MemoCollectionInfo key="MemoCollectionInfo" />
       <TabBar
         mb={isSmallScreen ? '24px' : '32px'}
         selectedIndex={context?.selectedIndex}
@@ -120,7 +123,7 @@ const TransactionHeader = () => {
   const setContext = useCollectionDetailContext()?.setContext;
   return (
     <Box flexDirection="column" alignItems="flex-start">
-      <MemoCollectionInfo />
+      <MemoCollectionInfo key="MemoCollectionInfo" />
       <TabBar
         mb={{ md: '8px' }}
         selectedIndex={context?.selectedIndex}
@@ -140,10 +143,13 @@ const TransactionHeader = () => {
           },
         ]}
       />
-      <TransactionListHeader />
+      <BaseTransactionListHeader />
     </Box>
   );
 };
+
+const AssetsListHeader = () => <AssetHeader />;
+const TransactionListHeader = () => <TransactionHeader />;
 
 const Screen = () => {
   const route =
@@ -159,13 +165,13 @@ const Screen = () => {
         <AssetsList
           contractAddress={contractAddress}
           networkId={networkId}
-          ListHeaderComponent={() => <AssetHeader />}
+          ListHeaderComponent={AssetsListHeader}
         />
       ) : (
         <TransactionList
           contractAddress={contractAddress}
           networkId={networkId}
-          ListHeaderComponent={() => <TransactionHeader />}
+          ListHeaderComponent={TransactionListHeader}
         />
       )}
     </>

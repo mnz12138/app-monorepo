@@ -1,7 +1,9 @@
-import { COINTYPE_TRON as COIN_TYPE } from '../../../constants';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { COINTYPE_TRON as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
+
+import { AccountType } from '../../../types/account';
 import { KeyringWatchingBase } from '../../keyring/KeyringWatchingBase';
 
+import type { DBSimpleAccount } from '../../../types/account';
 import type { IPrepareWatchingAccountsParams } from '../../types';
 
 export class KeyringWatching extends KeyringWatchingBase {

@@ -1,10 +1,8 @@
 import { BigNumber } from 'bignumber.js';
 
-import {
-  EVMTxFromType,
-  Transaction,
-} from '@onekeyhq/engine/src/types/covalent';
-import { Network } from '@onekeyhq/engine/src/types/network';
+import type { Transaction } from '@onekeyhq/engine/src/types/covalent';
+import { EVMTxFromType } from '@onekeyhq/engine/src/types/covalent';
+import type { Network } from '@onekeyhq/engine/src/types/network';
 import { EVMDecodedTxType } from '@onekeyhq/engine/src/vaults/impl/evm/decoder/types';
 
 import { formatBalanceDisplay } from '../../../components/Format';

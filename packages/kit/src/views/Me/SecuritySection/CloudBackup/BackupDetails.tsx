@@ -1,13 +1,7 @@
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 
-import { RouteProp, useRoute } from '@react-navigation/core';
-import { IBoxProps } from 'native-base';
+import { useRoute } from '@react-navigation/core';
 import natsort from 'natsort';
 import { useIntl } from 'react-intl';
 import { StyleSheet } from 'react-native';
@@ -23,30 +17,32 @@ import {
   useIsVerticalLayout,
   useToast,
 } from '@onekeyhq/components';
+import type { Avatar } from '@onekeyhq/shared/src/emojiUtils';
+import { RestoreResult } from '@onekeyhq/shared/src/services/ServiceCloudBackup/ServiceCloudBackup.enums';
+import type { PublicBackupData } from '@onekeyhq/shared/src/services/ServiceCloudBackup/ServiceCloudBackup.types';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
-import { RestoreResult } from '../../../../background/services/ServiceCloudBackup.types';
 import { useNavigation } from '../../../../hooks';
 import { useData } from '../../../../hooks/redux';
 import useImportBackupPasswordModal from '../../../../hooks/useImportBackupPasswordModal';
 import useLocalAuthenticationModal from '../../../../hooks/useLocalAuthenticationModal';
 import { useOnboardingDone } from '../../../../hooks/useOnboardingRequired';
-import {
-  HomeRoutes,
-  HomeRoutesParams,
-  RootRoutes,
-  RootRoutesParams,
-} from '../../../../routes/types';
-import { Avatar } from '../../../../utils/emojiUtils';
+import { HomeRoutes } from '../../../../routes/types';
 import { showOverlay } from '../../../../utils/overlayUtils';
 
 import BackupIcon from './BackupIcon';
 import BackupSummary from './BackupSummary';
 import Wrapper from './Wrapper';
 
-import type { PublicBackupData } from '../../../../background/services/ServiceCloudBackup.types';
+import type {
+  HomeRoutesParams,
+  RootRoutes,
+  RootRoutesParams,
+} from '../../../../routes/types';
+import type { RouteProp } from '@react-navigation/core';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { IBoxProps } from 'native-base';
 
 type BackupDetailsRouteProp = RouteProp<
   HomeRoutesParams,

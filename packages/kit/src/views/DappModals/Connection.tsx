@@ -1,12 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { RouteProp, useRoute } from '@react-navigation/core';
+import { useRoute } from '@react-navigation/core';
 import { Image } from 'native-base';
 import { useIntl } from 'react-intl';
 
@@ -25,12 +19,12 @@ import {
 } from '@onekeyhq/components';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import useModalClose from '@onekeyhq/components/src/Modal/Container/useModalClose';
-import { IAccount, INetwork } from '@onekeyhq/engine/src/types';
+import type { IAccount, INetwork } from '@onekeyhq/engine/src/types';
 import Logo from '@onekeyhq/kit/assets/logo_round.png';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
+import type { IDappSourceInfo } from '@onekeyhq/shared/types';
 
-import { IDappSourceInfo } from '../../background/IBackgroundApi';
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
 import walletConnectUtils from '../../components/WalletConnect/utils/walletConnectUtils';
 import { useActiveWalletAccount, useAppSelector } from '../../hooks';
@@ -41,7 +35,12 @@ import { refreshConnectedSites } from '../../store/reducers/refresher';
 import { DappSecurityView } from '../Send/components/DappSecurityView';
 
 import RugConfirmDialog from './RugConfirmDialog';
-import { DappConnectionModalRoutes, DappConnectionRoutesParams } from './types';
+
+import type {
+  DappConnectionModalRoutes,
+  DappConnectionRoutesParams,
+} from './types';
+import type { RouteProp } from '@react-navigation/core';
 
 const MockData = {
   permissions: [
@@ -319,10 +318,12 @@ const Connection = () => {
           isDeepLink,
         })
         .then(() => {
-          if (!isClosedDone.current && lastWalletConnectUri) {
-            closeModal();
-            isClosedDone.current = true;
-          }
+          //  Comment the following code to fix OK-15122 when networkNomatch then function will be called advance，When networkNomatch model first opened it
+          //  look ServiceDapp 378-398 line code resolve() to be called manually for some special reason
+          // if (!isClosedDone.current && lastWalletConnectUri) {
+          //   closeModal();
+          //   isClosedDone.current = true;
+          // }
           dispatch(refreshConnectedSites());
         })
         .catch((error) => {

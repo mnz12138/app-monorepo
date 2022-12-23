@@ -1,23 +1,16 @@
-import React, {
-  ComponentProps,
-  FC,
-  createElement,
-  isValidElement,
-  useCallback,
-  useMemo,
-} from 'react';
+import type { ComponentProps, FC } from 'react';
+import { createElement, isValidElement, useCallback, useMemo } from 'react';
 
 import { Box, Center } from 'native-base';
-import { ResponsiveValue } from 'native-base/lib/typescript/components/types';
 import { useIntl } from 'react-intl';
 
 import { parseNetworkId } from '@onekeyhq/engine/src/managers/network';
-import { OnekeyNetwork } from '@onekeyhq/engine/src/presets/networkIds';
-import { Token as IToken } from '@onekeyhq/engine/src/types/token';
+import type { Token as IToken } from '@onekeyhq/engine/src/types/token';
 import { useNavigation, useNetwork } from '@onekeyhq/kit/src/hooks';
 import { ModalRoutes, RootRoutes } from '@onekeyhq/kit/src/routes/types';
 import { useTokenSecurityInfo } from '@onekeyhq/kit/src/views/ManageTokens/hooks';
 import { ManageTokenRoutes } from '@onekeyhq/kit/src/views/ManageTokens/types';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import Icon from '../Icon';
@@ -26,6 +19,8 @@ import Pressable from '../Pressable';
 import { useToast } from '../Toast/useToast';
 import { Body2, Text } from '../Typography';
 import { shortenAddress } from '../utils';
+
+import type { ResponsiveValue } from 'native-base/lib/typescript/components/types';
 
 export type TokenProps = {
   token?: Partial<IToken>;
@@ -90,7 +85,7 @@ export const SecurityIcon: FC<{ token: Partial<IToken>; size: number }> = ({
   return null;
 };
 
-export const TokenVerifiedIcon: React.FC<{
+export const TokenVerifiedIcon: FC<{
   token?: Partial<IToken>;
   size?: number;
 }> = ({ token, size = 16 }) => {

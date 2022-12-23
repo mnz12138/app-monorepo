@@ -1,27 +1,24 @@
-import {
+import type {
   ComponentProps,
+  MutableRefObject,
   ReactElement,
   ReactNode,
   RefObject,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
 } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { flatten } from 'lodash';
 import { Icon as NBIcon } from 'native-base';
-import { ColorType } from 'native-base/lib/typescript/components/types';
 import {
+  InteractionManager,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
   useWindowDimensions,
 } from 'react-native';
-import { GestureResponderEvent } from 'react-native-modal';
 
 import Box from '../Box';
-import Icon, { ICON_NAMES } from '../Icon';
+import Icon from '../Icon';
 import { ChevronDown } from '../Icon/react/mini';
 import { OverlayContainer } from '../OverlayContainer';
 import Pressable from '../Pressable';
@@ -31,6 +28,10 @@ import { Text } from '../Typography';
 
 import Desktop from './Container/Desktop';
 import Mobile from './Container/Mobile';
+
+import type { ICON_NAMES } from '../Icon';
+import type { ColorType } from 'native-base/lib/typescript/components/types';
+import type { GestureResponderEvent } from 'react-native-modal';
 
 interface CloseButtonProps {
   onClose: (event: GestureResponderEvent) => void;
@@ -53,7 +54,7 @@ export function CloseBackDrop({ onClose, backgroundColor }: CloseButtonProps) {
   );
 }
 
-export type SelectItem<T = string> = {
+export type SelectItem<T = any> = {
   label: string;
   description?: string | ReactElement<any, any>;
   value: T;
@@ -120,6 +121,7 @@ export type SelectProps<T = string> = {
   positionTranslateY?: number;
   withReactModal?: boolean;
   autoAdjustPosition?: boolean;
+  outerContainerRef?: MutableRefObject<unknown>;
 };
 
 export type ChildProps<T> = Pick<
@@ -144,6 +146,7 @@ export type ChildProps<T> = Pick<
   | 'positionTranslateY'
   | 'withReactModal'
   | 'autoAdjustPosition'
+  | 'outerContainerRef'
 > & {
   toggleVisible: () => void;
   visible: boolean;
@@ -161,7 +164,7 @@ const defaultProps = {
   onVisibleChange: null,
 } as const;
 
-function Select<T = string>({
+function Select<T = any>({
   options,
   value,
   containerProps,
@@ -188,19 +191,21 @@ function Select<T = string>({
   onModalHide,
   withReactModal,
   autoAdjustPosition,
+  outerContainerRef,
 }: SelectProps<T>) {
   const triggerRef = useRef<HTMLElement | View>(null);
-  const [visible, setVisible] = useState(false);
+  const [innerVisible, setInnerVisible] = useState(false);
+  const visible = selectVisible ?? innerVisible;
   const { size } = useUserDevice();
   const toggleVisible = useCallback(() => {
     // if (platformEnv.isBrowser) {
     //   const event = new Event('click');
     //   window.dispatchEvent(event);
     // }
-    const newVisible = !(selectVisible === undefined ? visible : selectVisible);
-    setVisible(newVisible);
+    const newVisible = !visible;
+    setInnerVisible(newVisible);
     onVisibleChange?.(newVisible);
-  }, [onVisibleChange, selectVisible, visible]);
+  }, [onVisibleChange, visible]);
 
   const [innerValue, setInnerValue] = useState<T | undefined>(defaultValue);
   const currentActiveValue = value ?? innerValue;
@@ -227,11 +232,19 @@ function Select<T = string>({
 
   const handleChange = useCallback(
     (v: SelectItem<T>['value'], option: SelectItem<T>) => {
-      setInnerValue(v);
       toggleVisible();
-      setTimeout(() => onChange?.(v, option), 500);
+      InteractionManager.runAfterInteractions(() => {
+        if (typeof v === 'function') {
+          v();
+        } else {
+          if (value === undefined) {
+            setInnerValue(v);
+          }
+          onChange?.(v, option);
+        }
+      });
     },
-    [onChange, toggleVisible],
+    [onChange, toggleVisible, value],
   );
 
   const handlePressFooter = useCallback(() => {
@@ -241,7 +254,7 @@ function Select<T = string>({
 
   const container = useMemo(() => {
     const childContainerProps = {
-      visible: selectVisible === undefined ? visible : selectVisible,
+      visible,
       options,
       toggleVisible,
       dropdownProps,
@@ -261,6 +274,7 @@ function Select<T = string>({
       setPositionOnlyMounted,
       positionTranslateY,
       withReactModal,
+      outerContainerRef,
       onModalHide: () => {
         if (visible) {
           toggleVisible();
@@ -284,7 +298,6 @@ function Select<T = string>({
       </OverlayContainer>
     );
   }, [
-    selectVisible,
     visible,
     options,
     toggleVisible,
@@ -303,6 +316,7 @@ function Select<T = string>({
     setPositionOnlyMounted,
     positionTranslateY,
     withReactModal,
+    outerContainerRef,
     size,
     autoAdjustPosition,
     onModalHide,

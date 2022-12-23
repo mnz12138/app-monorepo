@@ -1,14 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import QRCodeModalWeb from '@walletconnect/qrcode-modal';
-import { IQRCodeModal, IWalletConnectSession } from '@walletconnect/types';
-import { Web3ReactState } from '@web3-react/types';
 import { Linking } from 'react-native';
 
 import useModalClose from '@onekeyhq/components/src/Modal/Container/useModalClose';
 import { copyToClipboard } from '@onekeyhq/components/src/utils/ClipboardUtils';
-import { IBaseExternalAccountInfo } from '@onekeyhq/engine/src/dbs/simple/entity/SimpleDbEntityWalletConnect';
+import type { IBaseExternalAccountInfo } from '@onekeyhq/engine/src/dbs/simple/entity/SimpleDbEntityWalletConnect';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
@@ -21,17 +19,18 @@ import {
 } from '../../routes/routesEnum';
 import { wait } from '../../utils/helper';
 
-import { WalletService } from './types';
 import walletConnectUtils from './utils/walletConnectUtils';
-import {
-  ISessionStatusPro,
-  WalletConnectClientForDapp,
-} from './WalletConnectClientForDapp';
+import { WalletConnectClientForDapp } from './WalletConnectClientForDapp';
 import {
   WALLET_CONNECT_IS_NATIVE_QRCODE_MODAL,
   WALLET_CONNECT_OPEN_WALLET_APP_DELAY,
   WALLET_CONNECT_WALLETS_LIST,
 } from './walletConnectConsts';
+
+import type { WalletService } from './types';
+import type { ISessionStatusPro } from './WalletConnectClientForDapp';
+import type { IQRCodeModal, IWalletConnectSession } from '@walletconnect/types';
+import type { Web3ReactState } from '@web3-react/types';
 
 export type IWalletConnectQrcodeModalState = {
   visible: boolean;
@@ -66,8 +65,8 @@ export function useWalletConnectQrcodeModal() {
   const walletServiceSelectedInModalRef = useRef<WalletService | undefined>();
 
   // node_modules/@walletconnect/react-native-dapp/dist/providers/WalletConnectProvider.js
-  //    const connectToWalletService = React.useCallback(async (walletService, uri)
-  //    const open = React.useCallback(async (uri, cb) =>
+  //    const connectToWalletService = useCallback(async (walletService, uri)
+  //    const open = useCallback(async (uri, cb) =>
   const connectToWalletService = useCallback(
     async (walletService: WalletService, uri?: string) => {
       if (typeof uri !== 'string' || !uri.length) {
@@ -166,9 +165,12 @@ export function useWalletConnectQrcodeModal() {
   // TODO disconnect client and ws transport when Modal close
   const close = useCallback(
     ({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       walletServiceForConnectDirectly,
+      shouldCloseCurrentModal,
     }: {
       walletServiceForConnectDirectly?: WalletService;
+      shouldCloseCurrentModal?: boolean;
     } = {}) => {
       if (isClosedRef.current) {
         return;
@@ -177,7 +179,7 @@ export function useWalletConnectQrcodeModal() {
         'useWalletConnectQrcodeModal onDismiss closed',
       );
       isClosedRef.current = true;
-      if (!walletServiceForConnectDirectly) {
+      if (shouldCloseCurrentModal) {
         closeModal();
       }
       setState((currentState) => {
@@ -200,8 +202,12 @@ export function useWalletConnectQrcodeModal() {
     [closeModal],
   );
 
+  // CreateWalletModalRoutes.WalletConnectQrcodeModal destroy callback
   const onDismiss = useCallback(() => {
-    close();
+    // WalletConnectQrcodeModal is closed by destroy, do NOT close twice
+    close({
+      shouldCloseCurrentModal: false,
+    });
     (async () => {
       // setConnector(await createConnector(intermediateValue));
     })();
@@ -284,7 +290,10 @@ export function useWalletConnectQrcodeModal() {
           return undefined;
         },
         close() {
-          close({ walletServiceForConnectDirectly });
+          close({
+            walletServiceForConnectDirectly,
+            shouldCloseCurrentModal: !walletServiceForConnectDirectly,
+          });
         },
       };
     },

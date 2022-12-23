@@ -1,25 +1,25 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-
+import { COINTYPE_ADA as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ADA as COIN_TYPE } from '../../../constants';
-import { ExportedPrivateKeyCredential } from '../../../dbs/base';
 import { NotImplemented, OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBUTXOAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringImportedBase } from '../../keyring/KeyringImportedBase';
-import {
-  IPrepareImportedAccountsParams,
-  ISignCredentialOptions,
-} from '../../types';
 
 import { encodePrivateKey, getPathIndex, getXprvString } from './helper/bip32';
 import { getCardanoApi } from './helper/sdk';
 import { batchGetShelleyAddressByRootKey } from './helper/shelley-address';
-import { IAdaUTXO, IEncodedTxADA, NetworkId } from './types';
+import { NetworkId } from './types';
+
+import type { ExportedPrivateKeyCredential } from '../../../dbs/base';
+import type { DBUTXOAccount } from '../../../types/account';
+import type {
+  IPrepareImportedAccountsParams,
+  ISignCredentialOptions,
+  ISignedTxPro,
+  IUnsignedTxPro,
+} from '../../types';
+import type { IAdaUTXO, IEncodedTxADA } from './types';
 
 export class KeyringImported extends KeyringImportedBase {
   override async getPrivateKeys(
@@ -105,15 +105,12 @@ export class KeyringImported extends KeyringImportedBase {
   }
 
   override async signTransaction(
-    unsignedTx: UnsignedTx,
+    unsignedTx: IUnsignedTxPro,
     options: ISignCredentialOptions,
-  ): Promise<SignedTx> {
+  ): Promise<ISignedTxPro> {
     debugLogger.sendTx.info('signTransaction result', unsignedTx);
     const encodedTx = unsignedTx.payload.encodedTx as unknown as IEncodedTxADA;
     const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
-    // const { [dbAccount.path]: privateKey } = await this.getPrivateKeys(
-    //   options.password ?? '',
-    // );
 
     const signers = await this.getSigners(options.password || '', [
       dbAccount.address,
@@ -132,12 +129,46 @@ export class KeyringImported extends KeyringImportedBase {
       Number(accountIndex),
       encodedTx.inputs as unknown as IAdaUTXO[],
       xprv,
+      !!encodedTx.signOnly,
       false,
     );
 
     return {
       rawTx: signedTx,
       txid,
+      encodedTx: unsignedTx.encodedTx,
     };
+  }
+
+  override async signMessage(
+    messages: any[],
+    options: ISignCredentialOptions,
+  ): Promise<string[]> {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+
+    const signers = await this.getSigners(options.password || '', [
+      dbAccount.address,
+    ]);
+    const signer = signers[dbAccount.address];
+    const privateKey = await signer.getPrvkey();
+
+    const encodeKey = encodePrivateKey(privateKey);
+
+    const xprv = await getXprvString(encodeKey.rootKey);
+    const accountIndex = getPathIndex(dbAccount.path);
+
+    const CardanoApi = await getCardanoApi();
+    const result = await Promise.all(
+      messages.map(
+        ({ payload }: { payload: { addr: string; payload: string } }) =>
+          CardanoApi.dAppUtils.signData(
+            payload.addr,
+            payload.payload,
+            xprv,
+            Number(accountIndex),
+          ),
+      ),
+    );
+    return result.map((ret) => JSON.stringify(ret));
   }
 }

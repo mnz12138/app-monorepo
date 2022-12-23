@@ -1,9 +1,9 @@
-import { ComponentProps, ComponentPropsWithoutRef, FC, Fragment } from 'react';
+import type { ComponentProps, FC } from 'react';
 
-import type Box from '../Box';
-import type { Pressable } from 'react-native';
+import Box from '../Box';
 
-export const DesktopDragZoneAbsoluteBar = Fragment as FC<
-  ComponentProps<typeof Box>
->;
-export default Fragment as FC<ComponentPropsWithoutRef<typeof Pressable>>;
+export const DesktopDragZoneAbsoluteBar: FC<ComponentProps<typeof Box>> = (
+  props,
+) => <Box {...props} />;
+
+export default DesktopDragZoneAbsoluteBar;

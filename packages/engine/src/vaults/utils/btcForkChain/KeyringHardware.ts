@@ -1,26 +1,37 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { RefTransaction, getHDPath, getScriptType } from '@onekeyfe/hd-core';
 import * as BitcoinJS from 'bitcoinjs-lib';
 
-import { HardwareSDK, deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import {
+  CoreSDKLoader,
+  HardwareSDK,
+} from '@onekeyhq/shared/src/device/hardwareInstance';
+import {
+  COINTYPE_BCH,
+  COINTYPE_DOGE,
+} from '@onekeyhq/shared/src/engine/engineConsts';
 
-import { COINTYPE_BCH, COINTYPE_DOGE } from '../../../constants';
 import {
   NotImplemented,
   OneKeyHardwareError,
   OneKeyInternalError,
 } from '../../../errors';
-import { AccountType, DBUTXOAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
-import { IGetAddressParams, IPrepareHardwareAccountsParams } from '../../types';
 
-import { TxInput, TxOutput, UTXO } from './types';
 import { getAccountDefaultByPurpose } from './utils';
 
+import type { DBUTXOAccount } from '../../../types/account';
+import type {
+  IGetAddressParams,
+  IPrepareHardwareAccountsParams,
+} from '../../types';
+import type { TxInput, TxOutput, UTXO } from './types';
 import type BTCForkVault from './VaultBtcFork';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { RefTransaction } from '@onekeyfe/hd-core';
 import type { Messages } from '@onekeyfe/hd-transport';
 
 export class KeyringHardware extends KeyringHardwareBase {
@@ -52,8 +63,12 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     const response = await HardwareSDK.btcSignTransaction(connectId, deviceId, {
       coin: coinName.toLowerCase(),
-      inputs: inputs.map((i) => this.buildHardwareInput(i, signers[i.address])),
-      outputs: outputs.map((o) => this.buildHardwareOutput(o)),
+      inputs: await Promise.all(
+        inputs.map(async (i) => this.buildHardwareInput(i, signers[i.address])),
+      ),
+      outputs: await Promise.all(
+        outputs.map(async (o) => this.buildHardwareOutput(o)),
+      ),
       refTxs: Object.values(prevTxs).map((i) => this.buildPrevTx(i)),
       ...passphraseState,
     });
@@ -65,7 +80,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       return { txid: tx.getId(), rawTx: serializedTx };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   override async prepareAccounts(
@@ -109,7 +124,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!response.success || !response.payload) {
       console.error(response.payload);
-      throw deviceUtils.convertDeviceError(response.payload);
+      throw convertDeviceError(response.payload);
     }
 
     if (response.payload.length !== usedIndexes.length) {
@@ -165,10 +180,11 @@ export class KeyringHardware extends KeyringHardwareBase {
     return ret;
   }
 
-  private buildHardwareInput = (
+  private buildHardwareInput = async (
     input: TxInput,
     path: string,
-  ): Messages.TxInputType => {
+  ): Promise<Messages.TxInputType> => {
+    const { getHDPath, getScriptType } = await CoreSDKLoader();
     const addressN = getHDPath(path);
     const scriptType = getScriptType(addressN);
     const utxo = input.utxo as UTXO;
@@ -183,14 +199,16 @@ export class KeyringHardware extends KeyringHardwareBase {
     };
   };
 
-  private buildHardwareOutput = (output: TxOutput): Messages.TxOutputType => {
+  private buildHardwareOutput = async (
+    output: TxOutput,
+  ): Promise<Messages.TxOutputType> => {
     const { isCharge, bip44Path } = output.payload || {};
 
     if (isCharge && bip44Path) {
+      const { getHDPath, getOutputScriptType } = await CoreSDKLoader();
       const addressN = getHDPath(bip44Path);
-      const scriptType = getScriptType(addressN);
+      const scriptType = getOutputScriptType(addressN);
       return {
-        // @ts-expect-error
         script_type: scriptType,
         address_n: addressN,
         amount: output.value.integerValue().toString(),
@@ -250,7 +268,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success) {
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   signMessage(): Promise<string[]> {

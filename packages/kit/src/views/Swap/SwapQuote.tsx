@@ -1,12 +1,15 @@
-import React, { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useIntl } from 'react-intl';
 
 import {
+  BottomSheetModal,
   Box,
+  CustomSkeleton,
   Icon,
   IconButton,
   Pressable,
+  Stack,
   Switch,
   Typography,
 } from '@onekeyhq/components';
@@ -15,16 +18,18 @@ import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
 import { useAppSelector, useNavigation } from '../../hooks';
 import { ModalRoutes, RootRoutes } from '../../routes/routesEnum';
 import { setDisableSwapExactApproveAmount } from '../../store/reducers/settings';
+import { showOverlay } from '../../utils/overlayUtils';
 
 import { ArrivalTime } from './components/ArrivalTime';
 import SwappingVia from './components/SwappingVia';
 import TransactionFee from './components/TransactionFee';
 import TransactionRate from './components/TransactionRate';
 import { SwapRoutes } from './typings';
+import { getTokenAmountValue } from './utils';
 
 const SwapArrivalTime = () => {
   const arrivalTime = useAppSelector((s) => s.swap.quote?.arrivalTime);
-  return <ArrivalTime value={arrivalTime} />;
+  return <ArrivalTime value={arrivalTime} typography="Body2" />;
 };
 
 const SwapExactAmoutAllowance = () => {
@@ -45,9 +50,9 @@ const SwapExactAmoutAllowance = () => {
       alignItems="center"
       mb="4"
     >
-      <Typography.Caption color="text-disabled" mr="2">
+      <Typography.Body2 color="text-disabled" mr="2">
         {intl.formatMessage({ id: 'form__exact_amount_allowance' })}
-      </Typography.Caption>
+      </Typography.Body2>
       <Box flex="1" flexDirection="row" justifyContent="flex-end">
         <Box maxW="full">
           <Switch
@@ -62,12 +67,108 @@ const SwapExactAmoutAllowance = () => {
   );
 };
 
+const SwapNetworkFee = () => {
+  const intl = useIntl();
+  const fees = useMemo(
+    () => [
+      { text: intl.formatMessage({ id: 'form__rocket_rapid' }), value: '2' },
+      { text: intl.formatMessage({ id: 'form__train_fast' }), value: '1' },
+      { text: intl.formatMessage({ id: 'form__car_normal' }), value: '0' },
+    ],
+    [intl],
+  );
+
+  const swapFeePresetIndex = useAppSelector(
+    (s) => s.swapTransactions.swapFeePresetIndex,
+  );
+
+  const onPress = useCallback(() => {
+    showOverlay((close) => (
+      <BottomSheetModal
+        title={intl.formatMessage({ id: 'form__gas_fee_settings' })}
+        closeOverlay={close}
+      >
+        <Stack direction="column" space="2">
+          {fees.map((item) => (
+            <Pressable
+              _hover={{ bg: 'surface-hovered' }}
+              px={4}
+              py={2}
+              borderRadius={12}
+              _pressed={{ bg: 'surface-pressed' }}
+              w="full"
+              key={item.value}
+              onPress={() => {
+                backgroundApiProxy.serviceSwap.setSwapFeePresetIndex(
+                  item.value,
+                );
+                close();
+              }}
+            >
+              <Typography.DisplayMedium>{item.text}</Typography.DisplayMedium>
+            </Pressable>
+          ))}
+        </Stack>
+      </BottomSheetModal>
+    ));
+  }, [fees, intl]);
+
+  const text = useMemo(() => {
+    let index = fees.findIndex((item) => item.value === swapFeePresetIndex);
+    if (index === -1) {
+      // default network fee is fast
+      index = 1;
+    }
+    return fees[index].text;
+  }, [fees, swapFeePresetIndex]);
+
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      justifyContent="space-between"
+      alignItems="center"
+      mb="4"
+    >
+      <Typography.Body2 color="text-disabled" mr="2">
+        {intl.formatMessage({ id: 'form__network_fee' })}
+      </Typography.Body2>
+      <Box flexDirection="row" justifyContent="flex-end" alignItems="center">
+        <Pressable flexDirection="row" alignItems="center" onPress={onPress}>
+          <Typography.Body2 mr="1" color="text-subdued">
+            {text}
+          </Typography.Body2>
+          <Icon size={16} name="ChevronRightOutline" />
+        </Pressable>
+      </Box>
+    </Box>
+  );
+};
+
+const SwapMinimumReceived = () => {
+  const buyAmount = useAppSelector(
+    (s) => s.swap.quote?.estimatedBuyAmount || s.swap.quote?.buyAmount,
+  );
+  const outputToken = useAppSelector((s) => s.swap.outputToken);
+  if (outputToken && buyAmount) {
+    return (
+      <Typography.Body2 color="text-subdued">
+        {getTokenAmountValue(outputToken, buyAmount).toFixed(4)}{' '}
+        {outputToken.symbol.toUpperCase()}
+      </Typography.Body2>
+    );
+  }
+  return null;
+};
+
 const SwapQuote = () => {
   const intl = useIntl();
   const navigation = useNavigation();
   const quote = useAppSelector((s) => s.swap.quote);
+  const quoteLimited = useAppSelector((s) => s.swap.quoteLimited);
   const inputToken = useAppSelector((s) => s.swap.inputToken);
   const outputToken = useAppSelector((s) => s.swap.outputToken);
+  const loading = useAppSelector((s) => s.swap.loading);
   const showMoreQuoteDetail = useAppSelector((s) => s.swap.showMoreQuoteDetail);
   const swapSlippagePercent = useAppSelector(
     (s) => s.settings.swapSlippagePercent,
@@ -104,21 +205,28 @@ const SwapQuote = () => {
         alignItems="center"
         mb="4"
       >
-        <Typography.Caption color="text-disabled" mr="2">
+        <Typography.Body2 color="text-disabled" mr="2">
           {intl.formatMessage({ id: 'Rate' })}
-        </Typography.Caption>
+        </Typography.Body2>
         <Box flex="1" flexDirection="row" justifyContent="flex-end">
-          <Box maxW="full">
-            <TransactionRate
-              tokenA={inputToken}
-              tokenB={outputToken}
-              rate={quote?.instantRate}
-              typography="Caption"
-              color="text-subdued"
-            />
-          </Box>
+          {loading ? (
+            <Box h="4" width="24" borderRadius="2px" overflow="hidden">
+              <CustomSkeleton />
+            </Box>
+          ) : (
+            <Box maxW="full">
+              <TransactionRate
+                tokenA={inputToken}
+                tokenB={outputToken}
+                rate={quote?.instantRate}
+                typography="Body2"
+                color="text-subdued"
+              />
+            </Box>
+          )}
         </Box>
       </Box>
+      <SwapNetworkFee />
       {!showMoreQuoteDetail ? (
         <Box
           display="flex"
@@ -127,9 +235,9 @@ const SwapQuote = () => {
           alignItems="center"
           mb="4"
         >
-          <Typography.Caption color="text-disabled" mr="2">
+          <Typography.Body2 color="text-disabled" mr="2">
             {intl.formatMessage({ id: 'form__more_details' })}
-          </Typography.Caption>
+          </Typography.Body2>
           <IconButton
             type="plain"
             name="ChevronDownOutline"
@@ -150,9 +258,9 @@ const SwapQuote = () => {
             alignItems="center"
             mb="4"
           >
-            <Typography.Caption color="text-disabled" mr="2">
+            <Typography.Body2 color="text-disabled" mr="2">
               {intl.formatMessage({ id: 'title__slippage' })}
-            </Typography.Caption>
+            </Typography.Body2>
 
             <Box
               flexDirection="row"
@@ -160,9 +268,9 @@ const SwapQuote = () => {
               alignItems="center"
             >
               <Pressable flexDirection="row" onPress={onSettting}>
-                <Typography.Caption mr="1" color="text-subdued">
+                <Typography.Body2 mr="1" color="text-subdued">
                   Auto({swapSlippagePercent}%)
-                </Typography.Caption>
+                </Typography.Body2>
                 <Icon size={16} name="PencilAltOutline" />
               </Pressable>
             </Box>
@@ -175,19 +283,21 @@ const SwapQuote = () => {
             alignItems="center"
             mb="4"
           >
-            <Typography.Caption color="text-disabled" mr="2">
+            <Typography.Body2 color="text-disabled" mr="2">
               {intl.formatMessage({ id: 'form__swapping_via' })}
-            </Typography.Caption>
+            </Typography.Body2>
             <Box
               flex="1"
               flexDirection="row"
               justifyContent="flex-end"
               alignItems="center"
             >
-              <Pressable onPress={onSelectRoute}>
-                <SwappingVia providers={quote.providers} />
+              <Pressable onPress={onSelectRoute} disabled={!!quoteLimited}>
+                <SwappingVia providers={quote.providers} typography="Body2" />
               </Pressable>
-              <Icon size={16} name="ChevronRightOutline" />
+              {quoteLimited ? null : (
+                <Icon size={16} name="ChevronRightOutline" />
+              )}
             </Box>
           </Box>
           <Box
@@ -197,13 +307,13 @@ const SwapQuote = () => {
             alignItems="center"
             mb="4"
           >
-            <Typography.Caption color="text-disabled" mr="2">
+            <Typography.Body2 color="text-disabled" mr="2">
               {intl.formatMessage({ id: 'title__price_impact' })}
-            </Typography.Caption>
+            </Typography.Body2>
             <Box flex="1" flexDirection="row" justifyContent="flex-end">
-              <Typography.Caption color="text-subdued">
+              <Typography.Body2 color="text-subdued">
                 &lt;0.01%
-              </Typography.Caption>
+              </Typography.Body2>
             </Box>
           </Box>
           <Box
@@ -213,13 +323,14 @@ const SwapQuote = () => {
             alignItems="center"
             mb="4"
           >
-            <Typography.Caption color="text-disabled" mr="2">
+            <Typography.Body2 color="text-disabled" mr="2">
               {intl.formatMessage({ id: 'form__included_onekey_fee' })}
-            </Typography.Caption>
+            </Typography.Body2>
             <Box flex="1" flexDirection="row" justifyContent="flex-end">
               <TransactionFee
                 type={quote.type}
                 percentageFee={quote.percentageFee}
+                typography="Body2"
               />
             </Box>
           </Box>
@@ -230,9 +341,23 @@ const SwapQuote = () => {
             alignItems="center"
             mb="4"
           >
-            <Typography.Caption color="text-disabled" mr="2">
+            <Typography.Body2 color="text-disabled" mr="2">
+              {intl.formatMessage({ id: 'form__minimum_received' })}
+            </Typography.Body2>
+            <Box flex="1" flexDirection="row" justifyContent="flex-end">
+              <SwapMinimumReceived />
+            </Box>
+          </Box>
+          <Box
+            display="flex"
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb="4"
+          >
+            <Typography.Body2 color="text-disabled" mr="2">
               {intl.formatMessage({ id: 'title__arrival_time' })}
-            </Typography.Caption>
+            </Typography.Body2>
             <Box flex="1" flexDirection="row" justifyContent="flex-end">
               <SwapArrivalTime />
             </Box>

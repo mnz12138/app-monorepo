@@ -1,14 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react';
-
-import { useRoute } from '@react-navigation/core';
-import { TransitionPresets } from '@react-navigation/stack';
-
-import { Box, useIsVerticalLayout } from '@onekeyhq/components';
-import {
-  SendRoutes,
-  SendRoutesParams,
-} from '@onekeyhq/kit/src/views/Send/types';
+import { useIsVerticalLayout } from '@onekeyhq/components';
+import type { SendRoutesParams } from '@onekeyhq/kit/src/views/Send/types';
+import { SendRoutes } from '@onekeyhq/kit/src/views/Send/types';
 
 import { BaseSendRouteScreen } from '../../views/Send/components/BaseSendRouteScreen';
 import { BatchSendConfirm } from '../../views/Send/modals/BatchSendConfirm';

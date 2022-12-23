@@ -1,7 +1,8 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { createContext, useContext } from 'react';
 
-import { Network } from '@onekeyhq/engine/src/types/network';
-import {
+import type { Network } from '@onekeyhq/engine/src/types/network';
+import type {
   NFTMarketCapCollection,
   NFTMarketRanking,
 } from '@onekeyhq/engine/src/types/nft';
@@ -18,7 +19,7 @@ export type StatsListContextValue = {
 
 export type IStatsListContent = {
   context: StatsListContextValue;
-  setContext: React.Dispatch<React.SetStateAction<StatsListContextValue>>;
+  setContext: Dispatch<SetStateAction<StatsListContextValue>>;
 };
 
 export const StatsListContext = createContext<IStatsListContent | null>(null);

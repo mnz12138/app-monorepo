@@ -1,34 +1,37 @@
+import type { ComponentProps, FC } from 'react';
 import {
-  ComponentProps,
-  FC,
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
 import { useIntl } from 'react-intl';
-import { ListRenderItem } from 'react-native';
 
 import {
   Box,
   CustomSkeleton,
-  FlatList,
   Modal,
   Pressable,
+  ScrollView,
+  Typography,
 } from '@onekeyhq/components';
+import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { useAppSelector, useNavigation } from '../../../hooks';
 import { ArrivalTime } from '../components/ArrivalTime';
-import { useSwapQuoteRequestParams, useSwapRecipient } from '../hooks/useSwap';
-import { SwapQuoter } from '../quoter';
-import { FetchQuoteResponse } from '../typings';
+import { useSwapQuoteRequestParams } from '../hooks/useSwap';
+import { stringifyTokens } from '../utils';
 
 import { AmountLimit } from './AmountLimit';
 import { LiquiditySources } from './LiquiditySources';
 import { TokenInput } from './TokenInput';
+import { useTokenOutput } from './utils';
+
+import type { FetchQuoteResponse } from '../typings';
 
 type RoutesProps = {
   responses: FetchQuoteResponse[];
@@ -45,8 +48,6 @@ const SelectRoutesContext = createContext({
   onSelect: (index: number) => {},
 });
 
-const ItemSeparatorComponent = () => <Box h="3" />;
-
 const ListEmptyComponent = () => (
   <Box>
     <Box w="full" h="20" borderRadius={12} overflow="hidden">
@@ -62,105 +63,172 @@ const ListEmptyComponent = () => (
 type PlaceholderLineProps = ComponentProps<typeof Box>;
 const PlaceholderLine: FC<PlaceholderLineProps> = ({ ...rest }) => (
   <Box flex="1" flexDirection="row" alignItems="center" {...rest}>
-    <Box h="1px" w="full" bg="border-default" />
+    <Box
+      borderTopColor="border-default"
+      w="full"
+      h="1"
+      borderStyle={platformEnv.isNative ? 'solid' : 'dashed'}
+      borderTopWidth={platformEnv.isNative ? 0.5 : 1}
+    />
   </Box>
 );
 
 const RouteOption: FC<RouteOptionProps> = ({ response, index }) => {
+  const intl = useIntl();
   const { inputToken, outputToken } = useAppSelector((s) => s.swap);
   const { selectedIndex, onSelect } = useContext(SelectRoutesContext);
   const { data, limited } = response;
+  const buyAmount = data?.estimatedBuyAmount ?? data?.buyAmount;
+  const isDisabled = !!limited;
+
+  const nofeePrice = useTokenOutput({
+    token: outputToken,
+    amount: data?.buyAmount,
+  });
 
   return (
     <Pressable
       borderColor={selectedIndex !== index ? 'border-default' : 'text-success'}
       _hover={{ bg: 'surface-hovered' }}
       _pressed={{ bg: 'surface-pressed' }}
-      borderWidth="1"
+      borderWidth={1.5}
       p="4"
       borderRadius={12}
       onPress={() => onSelect(index)}
+      isDisabled={isDisabled}
+      mb="3"
     >
       <Box
         flexDirection="row"
         justifyContent="space-between"
         alignItems="center"
+        w="full"
       >
-        <Box flex="1" flexDirection="row">
-          <TokenInput token={inputToken} amount={data?.sellAmount} />
-          <PlaceholderLine ml={2} />
+        <Box flex="2" flexDirection="row">
+          <TokenInput
+            token={inputToken}
+            amount={data?.sellAmount}
+            isDisabled={isDisabled}
+          />
+          <Box flex="1">
+            <PlaceholderLine ml={2} />
+          </Box>
         </Box>
         <Box flex="1" justifyContent="center" flexDirection="row">
           <PlaceholderLine mr={2} />
-          <LiquiditySources providers={data?.providers} />
+          <LiquiditySources
+            providers={data?.providers}
+            isDisabled={isDisabled}
+          />
           <PlaceholderLine ml={2} />
         </Box>
-        <Box flex="1" flexDirection="row">
+        <Box flex="2" flexDirection="row">
           <PlaceholderLine mr={2} />
-          <TokenInput token={outputToken} amount={data?.buyAmount} rightAlign />
+          <TokenInput
+            token={outputToken}
+            amount={buyAmount}
+            rightAlign
+            isDisabled={isDisabled}
+          />
         </Box>
       </Box>
       <Box mt="3" flexDirection="row" justifyContent="space-between">
         <Box>
-          <AmountLimit limited={limited} token={inputToken} />
+          <ArrivalTime value={data?.arrivalTime} />
         </Box>
-        <ArrivalTime value={data?.arrivalTime} />
+        <Box>
+          <Typography.Caption color="text-subdued">
+            {intl.formatMessage({ id: 'form__no_fee_price' })}
+            {nofeePrice}
+          </Typography.Caption>
+        </Box>
       </Box>
+      <AmountLimit response={response} token={inputToken} />
     </Pressable>
   );
 };
 
 const Routes: FC<RoutesProps> = ({ responses }) => {
-  const renderItem: ListRenderItem<FetchQuoteResponse> = ({ item, index }) => (
-    <RouteOption response={item} index={index} />
-  );
+  const intl = useIntl();
+  const data = responses.map((res, index) => ({ ...res, index }));
+  const limited = data.filter((item) => item.limited);
+  const notLimited = data.filter((item) => !item.limited);
+
   return (
-    <FlatList
-      data={responses}
-      renderItem={renderItem}
-      keyExtractor={(item, index) => item.data?.type ?? String(index)}
-      ItemSeparatorComponent={ItemSeparatorComponent}
-      ListEmptyComponent={ListEmptyComponent}
-    />
+    <ScrollView>
+      <Box>
+        <Box>
+          {notLimited.map((item) => (
+            <RouteOption
+              key={item.data?.type ?? ''}
+              response={item}
+              index={item.index}
+            />
+          ))}
+        </Box>
+        {limited.length ? (
+          <Box>
+            <Typography.Subheading mb="3" color="text-subdued">
+              {intl.formatMessage({ id: 'form__unavailable_uppercase' })}
+            </Typography.Subheading>
+            <Box>
+              {limited.map((item) => (
+                <RouteOption
+                  key={item.data?.type ?? ''}
+                  response={item}
+                  index={item.index}
+                />
+              ))}
+            </Box>
+          </Box>
+        ) : null}
+      </Box>
+    </ScrollView>
   );
 };
 
 const SelectRoutes = () => {
   const intl = useIntl();
   const navigation = useNavigation();
-  const [selectedIndex, onSelect] = useState(0);
+  const [selectedIndex, onSelectIndex] = useState(-1);
   const params = useSwapQuoteRequestParams();
-  const recipient = useSwapRecipient();
-  const [responses, setResponses] = useState<FetchQuoteResponse[]>([]);
+  const quote = useAppSelector((s) => s.swap.quote);
+  const responses = useAppSelector((s) => s.swap.responses);
+  const data = useMemo(() => responses ?? [], [responses]);
 
   useEffect(() => {
-    async function main() {
-      if (params) {
-        const data = await SwapQuoter.client.fetchQuotes({
-          ...params,
-          receivingAddress: recipient?.address,
-        });
-        if (data) {
-          setResponses(data);
-        }
+    function main() {
+      const index = data.findIndex((item) => item.data?.type === quote?.type);
+      if (index !== -1) {
+        onSelectIndex(index);
       }
     }
     main();
-  }, [params, recipient?.address]);
+  }, [data, quote]);
 
   const onPrimaryActionPress = useCallback(() => {
-    const response = responses[selectedIndex];
+    const response = data[selectedIndex];
     if (response) {
       if (response.data) {
         backgroundApiProxy.serviceSwap.setQuote(response.data);
+        const hash = stringifyTokens(params?.tokenIn, params?.tokenOut);
+        backgroundApiProxy.serviceSwap.setUserSelectedQuoter(
+          hash,
+          response.data.type,
+        );
       }
       backgroundApiProxy.serviceSwap.setQuoteLimited(response.limited);
     }
     navigation.goBack();
-  }, [selectedIndex, responses, navigation]);
+  }, [selectedIndex, data, navigation, params]);
+
+  const contextValue = useMemo(
+    () => ({ selectedIndex, onSelect: onSelectIndex }),
+    [selectedIndex],
+  );
 
   return (
-    <SelectRoutesContext.Provider value={{ selectedIndex, onSelect }}>
+    <SelectRoutesContext.Provider value={contextValue}>
       <Modal
         size="lg"
         header={intl.formatMessage({ id: 'title__select_route' })}
@@ -168,7 +236,11 @@ const SelectRoutes = () => {
         primaryActionTranslationId="action__confirm"
         onPrimaryActionPress={onPrimaryActionPress}
       >
-        <Routes responses={responses} />
+        {data.length === 0 ? (
+          <ListEmptyComponent />
+        ) : (
+          <Routes responses={data} />
+        )}
       </Modal>
     </SelectRoutesContext.Provider>
   );

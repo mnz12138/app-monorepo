@@ -1,8 +1,9 @@
-import { FC, useContext } from 'react';
+import type { FC } from 'react';
+import { useContext } from 'react';
 
 import { Box } from '@onekeyhq/components';
 
-import { useShowFullLayout } from '../../hooks';
+import { useShowBookmark } from '../../hooks';
 import { DiscoverContext } from '../context';
 
 import { Beta } from './Beta';
@@ -25,6 +26,6 @@ export const DesktopMini = () => (
 );
 
 export const Desktop: FC = () => {
-  const showFullLayout = useShowFullLayout();
+  const showFullLayout = useShowBookmark();
   return !showFullLayout ? <DesktopMini /> : <DesktopFull />;
 };

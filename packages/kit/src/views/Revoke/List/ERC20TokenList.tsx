@@ -1,4 +1,5 @@
-import React, { FC, useCallback } from 'react';
+import type { FC } from 'react';
+import { useCallback } from 'react';
 
 import B from 'bignumber.js';
 import { useIntl } from 'react-intl';
@@ -14,10 +15,8 @@ import {
   Typography,
   VStack,
 } from '@onekeyhq/components';
-import {
-  ERC20TokenAllowance,
-  toFloat,
-} from '@onekeyhq/engine/src/managers/revoke';
+import type { ERC20TokenAllowance } from '@onekeyhq/engine/src/managers/revoke';
+import { toFloat } from '@onekeyhq/engine/src/managers/revoke';
 
 import { FormatCurrencyNumber } from '../../../components/Format';
 import { useIsVerticalOrMiddleLayout } from '../hooks';
@@ -75,6 +74,10 @@ export const Header = ({ assetType }: { assetType: AssetType }) => {
     </ListItem>
   );
 };
+
+export const TokensHeader = () => <Header assetType={AssetType.tokens} />;
+
+export const NftsHeader = () => <Header assetType={AssetType.nfts} />;
 
 export const ListLoading = () => {
   const isVertical = useIsVerticalOrMiddleLayout();
@@ -317,13 +320,12 @@ export const ERC20TokenList: FC<{
     },
     [networkId, prices, intl, address],
   );
+
   return (
     <List
       data={loading ? [] : data}
       showDivider
-      ListHeaderComponent={
-        isVertical ? undefined : () => <Header assetType={AssetType.tokens} />
-      }
+      ListHeaderComponent={isVertical ? undefined : TokensHeader}
       renderItem={isVertical ? renderListItemMobile : renderListItemDesktop}
       keyExtractor={({ token }) => token.id ?? token.tokenIdOnNetwork}
       ListEmptyComponent={loading ? <ListLoading /> : <EmptyRecord />}

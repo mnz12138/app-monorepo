@@ -1,5 +1,4 @@
 import { getPathFromState as getPathFromStateDefault } from '@react-navigation/core';
-import { LinkingOptions } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { merge } from 'lodash';
 
@@ -16,8 +15,11 @@ import { EOnboardingRoutes } from '../views/Onboarding/routes/enums';
 import { SendRoutes } from '../views/Send/types';
 
 import { WalletConnectUniversalLinkPathSchema } from './deepLink';
+import { SubmitRequestRoutes } from './Modal/SubmitRequest';
 import { AccountRootLandingPathSchema } from './Root/AccountRootLanding';
 import { HomeRoutes, ModalRoutes, RootRoutes, TabRoutes } from './routesEnum';
+
+import type { LinkingOptions } from '@react-navigation/native';
 
 const prefix = Linking.createURL('/');
 
@@ -79,6 +81,10 @@ const normalRouteWhiteList: WhiteListItemList = [
     path: `/${RootRoutes.Onboarding}/${EOnboardingRoutes.Welcome}`,
   },
   {
+    screen: `${RootRoutes.Modal}/${ModalRoutes.SubmitRequest}/${SubmitRequestRoutes.SubmitRequestModal}`,
+    path: `/${RootRoutes.Modal}/${ModalRoutes.SubmitRequest}/${SubmitRequestRoutes.SubmitRequestModal}`,
+  },
+  {
     screen: `${RootRoutes.Modal}/${ModalRoutes.DappConnectionModal}/${DappConnectionModalRoutes.ConnectionModal}`,
     path: `/${RootRoutes.Modal}/${ModalRoutes.DappConnectionModal}/${DappConnectionModalRoutes.ConnectionModal}`,
   },
@@ -134,6 +140,14 @@ const normalRouteWhiteList: WhiteListItemList = [
       desktop: `${RootRoutes.Root}/${HomeRoutes.InitialTab}/${RootRoutes.Tab}/${TabRoutes.Market}/${HomeRoutes.MarketDetail}`,
     },
     path: `/marketDetail`,
+    exact: true,
+  },
+  {
+    screen: {
+      vertical: `${RootRoutes.Root}/${HomeRoutes.NFTPNLScreen}`,
+      desktop: `${RootRoutes.Root}/${HomeRoutes.InitialTab}/${RootRoutes.Tab}/${TabRoutes.NFT}/${HomeRoutes.NFTPNLScreen}`,
+    },
+    path: `/pnl`,
     exact: true,
   },
 ];

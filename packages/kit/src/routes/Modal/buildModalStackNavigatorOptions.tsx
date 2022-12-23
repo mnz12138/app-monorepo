@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {
-  StackNavigationOptions,
-  TransitionPresets,
-} from '@react-navigation/stack';
-import {
-  StackCardStyleInterpolator,
-  TransitionPreset,
-} from '@react-navigation/stack/lib/typescript/src/types';
+import { TransitionPresets } from '@react-navigation/stack';
 import { isNil } from 'lodash';
 import { Easing } from 'react-native';
 
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import type { RouteProp } from '@react-navigation/core';
+import type { StackNavigationOptions } from '@react-navigation/stack';
+import type {
+  StackCardStyleInterpolator,
+  TransitionPreset,
+} from '@react-navigation/stack/lib/typescript/src/types';
 
 const extAnimConfig: {
   transition: Omit<
@@ -101,6 +99,14 @@ export function buildModalOpenAnimationOptions({
       ...extAnimConfig.openModalAnim,
     };
   }
+
+  if (platformEnv.isNativeAndroid) {
+    return {
+      animation: 'none',
+      animationEnabled: false,
+    };
+  }
+
   if (isVerticalLayout) {
     return {
       animationEnabled: true,
@@ -143,6 +149,10 @@ export function buildModalStackNavigatorOptions({
   };
   if (!isNil(isVerticalLayout)) {
     options.animationEnabled = Boolean(isVerticalLayout);
+  }
+  if (platformEnv.isNativeAndroid) {
+    // @ts-expect-error
+    options.animation = 'none';
   }
   // Disable modal first screen navigation.replace() animation
   // @ts-ignore

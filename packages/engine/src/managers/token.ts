@@ -1,19 +1,20 @@
 import axios from 'axios';
 import qs from 'qs';
 
-import { ServerToken, Token } from '@onekeyhq/kit/src/store/typings';
-import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
-
+import type { ServerToken, Token } from '@onekeyhq/kit/src/store/typings';
 import {
   IMPL_APTOS,
   IMPL_SOL,
   IMPL_STC,
   IMPL_TRON,
   SEPERATOR,
-} from '../constants';
+} from '@onekeyhq/shared/src/engine/engineConsts';
+import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
+
 import { getFiatEndpoint } from '../endpoint';
 import { OneKeyInternalError } from '../errors';
-import { Tool } from '../types/token';
+
+import type { Tool } from '../types/token';
 
 export type TokenQuery = {
   // for all chain search

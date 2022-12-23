@@ -1,19 +1,19 @@
-import React, { useCallback, useLayoutEffect, useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo } from 'react';
 
 import { groupBy } from 'lodash';
 import { useIntl } from 'react-intl';
 
 import { Box, ScrollView, Text, useTheme } from '@onekeyhq/components';
-import { PriceAlertItem } from '@onekeyhq/engine/src/managers/notification';
+import type { PriceAlertItem } from '@onekeyhq/engine/src/managers/notification';
 import { useNavigation } from '@onekeyhq/kit/src/hooks';
 
 import { useSingleToken } from '../../hooks/useTokens';
-import { HomeRoutes, HomeRoutesParams } from '../../routes/types';
 
 import { ListEmptyComponent } from './Empty';
 import { usePriceAlertlist } from './hooks';
 import PriceItem from './PriceItem';
 
+import type { HomeRoutes, HomeRoutesParams } from '../../routes/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavigationProps = NativeStackNavigationProp<

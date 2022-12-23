@@ -1,10 +1,8 @@
-import React from 'react';
-
 import { useIntl } from 'react-intl';
 
 import { Box, VStack } from '@onekeyhq/components';
 import { FormErrorMessage } from '@onekeyhq/components/src/Form/FormErrorMessage';
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
 
 export function SendConfirmErrorsAlert({
   nativeToken,

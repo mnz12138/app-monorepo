@@ -1,10 +1,9 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useIntl } from 'react-intl';
 
-import backgroundApiProxy from '@onekeyhq//kit/src/background/instance/backgroundApiProxy';
 import { Dialog, useToast } from '@onekeyhq/components';
-import { IWallet } from '@onekeyhq/engine/src/types';
+import type { IWallet } from '@onekeyhq/engine/src/types';
 import {
   WALLET_TYPE_EXTERNAL,
   WALLET_TYPE_HW,
@@ -15,6 +14,7 @@ import {
   appUIEventBus,
 } from '@onekeyhq/shared/src/eventBus/appUIEventBus';
 
+import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { ValidationFields } from '../../../components/Protected';
 import useLocalAuthenticationModal from '../../../hooks/useLocalAuthenticationModal';
 
@@ -24,10 +24,10 @@ export default function useRemoveAccountDialog() {
   const { serviceAccount } = backgroundApiProxy;
   const successCall = useRef<() => void>();
 
-  const [visible, setVisible] = React.useState(false);
-  const [accountId, setAccountId] = React.useState('');
-  const [walletId, setWalletId] = React.useState('');
-  const [password, setPassword] = React.useState<string | undefined>();
+  const [visible, setVisible] = useState(false);
+  const [accountId, setAccountId] = useState('');
+  const [walletId, setWalletId] = useState('');
+  const [password, setPassword] = useState<string | undefined>();
   const { showVerify } = useLocalAuthenticationModal();
   const onSubmit = useCallback(async () => {
     if (!accountId) return Promise.resolve();

@@ -1,8 +1,9 @@
-import React, { FC, useCallback, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useState } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import axios from 'axios';
-import * as ImagePicker from 'expo-image-picker';
+import { MediaTypeOptions, launchImageLibraryAsync } from 'expo-image-picker';
 import { Row } from 'native-base';
 import { useIntl } from 'react-intl';
 import { useWindowDimensions } from 'react-native';
@@ -26,11 +27,13 @@ import { useSettings } from '../../../hooks/redux';
 
 import { ImageView } from './SubmitRequest';
 import { updateTicketUri, uploadImage } from './TicketService';
-import {
+
+import type {
   HistoryRequestModalRoutesParams,
   HistoryRequestRoutes,
   ImageModel,
 } from './types';
+import type { RouteProp } from '@react-navigation/core';
 
 type SubmitValues = {
   comment: string;
@@ -49,7 +52,7 @@ export const ReplyTicket: FC = () => {
   const { instanceId } = useSettings();
 
   const route = useRoute<RouteProps>();
-  const { id } = route?.params.order;
+  const { id } = route?.params.order || {};
   const submitterId = route?.params.order.submitter_id;
   const modalWidth = isSmallScreen ? width : 400;
   const padding = isSmallScreen ? 16 : 24;
@@ -99,8 +102,8 @@ export const ReplyTicket: FC = () => {
   );
 
   const pickImage = useCallback(async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
       allowsEditing: false,
       base64: true,
       aspect: [4, 3],

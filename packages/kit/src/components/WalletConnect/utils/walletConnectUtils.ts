@@ -1,17 +1,18 @@
-import { IClientMeta } from '@walletconnect/types';
 import { Linking, Platform } from 'react-native';
 
+import { waitForDataLoaded } from '@onekeyhq/shared/src/background/backgroundUtils';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
-import { waitForDataLoaded } from '../../../background/utils';
 import { getAppNavigation } from '../../../hooks/useAppNavigation';
 import { ModalRoutes, RootRoutes } from '../../../routes/routesEnum';
 import { getTimeDurationMs } from '../../../utils/helper';
 import { DappConnectionModalRoutes } from '../../../views/DappModals/types';
 import unlockUtils from '../../AppLock/unlockUtils';
-import { WalletService } from '../types';
 import { ONEKEY_APP_DEEP_LINK } from '../walletConnectConsts';
+
+import type { WalletService } from '../types';
+import type { IClientMeta } from '@walletconnect/types';
 
 const connectionRedirectUrl =
   platformEnv.isNative || platformEnv.isDesktop

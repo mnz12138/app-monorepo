@@ -1,4 +1,5 @@
-import { OnekeyNetwork } from '../presets/networkIds';
+// safe import
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 
 export const NFTChainMap: Record<string, string> = {
   [OnekeyNetwork.eth]: 'eth',
@@ -61,6 +62,7 @@ export type Collection = {
   amountsTotal?: number;
   volume24h?: number;
   openseaVerified?: boolean;
+  royalty?: number;
   blueChip?: {
     next_blue_chip_probability: string | null;
   } | null;
@@ -111,6 +113,7 @@ export type NFTTransaction = {
   blockNumber?: string;
   blockHash?: string;
   gasPrice?: string;
+  gasFee?: number;
   timestamp?: number;
   contractAddress?: string;
   contractName?: string;
@@ -188,4 +191,42 @@ export type NFTMarketRanking = {
     next_blue_chip_probability: string | null;
   } | null;
   openseaVerified?: boolean;
+};
+
+export type NFTPNL = {
+  contractAddress?: string;
+  asset?: NFTAsset;
+  contractName?: string;
+  ercType?: string;
+  tokenId: string;
+  entry: {
+    hash?: string;
+    tradeSymbol?: string;
+    eventType: string;
+    timestamp: number;
+    tradePrice?: number;
+    exchangeName?: string;
+    gasPrice?: string;
+    gasFee?: number;
+  };
+  exit: {
+    hash?: string;
+    tradeSymbol?: string;
+    eventType: string;
+    timestamp: number;
+    tradePrice?: number;
+    exchangeName?: string;
+    gasPrice?: string;
+    gasFee?: number;
+    internalTxValue?: number;
+    tokenTxValue?: number;
+  };
+
+  profit: number;
+};
+
+export type MarketPlace = {
+  name: string;
+  logoUrl?: string;
+  networks: Record<string, { handlingFee?: string }>;
 };

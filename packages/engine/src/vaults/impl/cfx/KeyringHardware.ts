@@ -1,25 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { toBigIntHex } from '@onekeyfe/blockchain-libs/dist/basic/bignumber-plus';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import { web3Errors } from '@onekeyfe/cross-inpage-provider-errors';
 import BigNumber from 'bignumber.js';
 import { TypedDataUtils } from 'eth-sig-util';
 import { Transaction, address as confluxAddress } from 'js-conflux-sdk';
 import { omitBy } from 'lodash';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
 import { isHexString } from '@onekeyhq/kit/src/utils/helper';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_CFX as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_CFX as COIN_TYPE } from '../../../constants';
 import { NotImplemented, OneKeyHardwareError } from '../../../errors';
-import { AccountType, DBVariantAccount } from '../../../types/account';
-import { ETHMessage, ETHMessageTypes } from '../../../types/message';
+import { AccountType } from '../../../types/account';
+import { ETHMessageTypes } from '../../../types/message';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
 
+import type { DBVariantAccount } from '../../../types/account';
+import type { ETHMessage } from '../../../types/message';
 import type {
   IGetAddressParams,
   IPrepareHardwareAccountsParams,
@@ -27,6 +26,7 @@ import type {
   IUnsignedTxPro,
 } from '../../types';
 import type { IEncodedTxCfx } from './types';
+import type { SignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'/0'/0`;
 
@@ -83,7 +83,7 @@ export class KeyringHardware extends KeyringHardwareBase {
         rawTx: signedTransaction.serialize(),
       });
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   async signMessage(
@@ -128,7 +128,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!addressesResponse.success) {
       debugLogger.common.error(addressesResponse.payload);
-      throw deviceUtils.convertDeviceError(addressesResponse.payload);
+      throw convertDeviceError(addressesResponse.payload);
     }
 
     return addressesResponse.payload
@@ -162,7 +162,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   async handleSignMessage(message: IUnsignedMessageCfx) {
@@ -206,7 +206,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       );
 
       if (!response.success) {
-        throw deviceUtils.convertDeviceError(response.payload);
+        throw convertDeviceError(response.payload);
       }
 
       return `0x${response.payload.signature || ''}`;
@@ -251,7 +251,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       );
 
       if (!response.success) {
-        throw deviceUtils.convertDeviceError(response.payload);
+        throw convertDeviceError(response.payload);
       }
 
       return `0x${response?.payload?.signature || ''}`;

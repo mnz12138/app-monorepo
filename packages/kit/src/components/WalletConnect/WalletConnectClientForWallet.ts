@@ -1,26 +1,25 @@
-import { IClientMeta, ISessionStatus } from '@walletconnect/types';
 import { merge } from 'lodash';
 import { Linking } from 'react-native';
 
+import { backgroundMethod } from '@onekeyhq/shared/src/background/backgroundDecorators';
 import {
   IMPL_ALGO,
   IMPL_APTOS,
   IMPL_EVM,
-} from '@onekeyhq/engine/src/constants';
+} from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
-import { backgroundMethod } from '../../background/decorators';
 import { wait } from '../../utils/helper';
 import Minimizer from '../Minimizer';
 
-import { OneKeyWalletConnector } from './OneKeyWalletConnector';
-import {
-  IWalletConnectClientOptions,
-  WalletConnectClientBase,
-} from './WalletConnectClient';
+import { WalletConnectClientBase } from './WalletConnectClient';
 import { WALLET_CONNECT_CLIENT_META } from './walletConnectConsts';
 import { WalletConnectSessionStorage } from './WalletConnectSessionStorage';
+
+import type { OneKeyWalletConnector } from './OneKeyWalletConnector';
+import type { IWalletConnectClientOptions } from './WalletConnectClient';
+import type { IClientMeta, ISessionStatus } from '@walletconnect/types';
 
 const sessionStorage = new WalletConnectSessionStorage({
   storageId: WalletConnectSessionStorage.STORAGE_IDS.WALLET_SIDE,

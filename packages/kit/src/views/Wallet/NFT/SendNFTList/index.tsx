@@ -11,32 +11,25 @@ import {
   useIsVerticalLayout,
   useSafeAreaInsets,
 } from '@onekeyhq/components';
-import { FlatListProps } from '@onekeyhq/components/src/FlatList';
-import { IMPL_SOL } from '@onekeyhq/engine/src/constants';
+import type { FlatListProps } from '@onekeyhq/components/src/FlatList';
 import { batchTransferContractAddress } from '@onekeyhq/engine/src/presets/batchTransferContractAddress';
-import { Collection } from '@onekeyhq/engine/src/types/nft';
-import { useSettings } from '@onekeyhq/kit/src/hooks/redux';
+import type { Collection } from '@onekeyhq/engine/src/types/nft';
+import { IMPL_SOL } from '@onekeyhq/shared/src/engine/engineConsts';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
 import { useActiveSideAccount, useNetwork } from '../../../../hooks';
 import { useIsMounted } from '../../../../hooks/useIsMounted';
 import { SendRoutes } from '../../../../routes/routesEnum';
-import {
-  ModalRoutes,
-  ModalScreenProps,
-  RootRoutes,
-} from '../../../../routes/types';
-import { PreSendParams } from '../../../Send/types';
+import { ModalRoutes, RootRoutes } from '../../../../routes/types';
 
 import SelectNFTCard from './SelectNFTCard';
-import {
-  SelectAsset,
-  SendNFTContentProvider,
-  useSendNFTContent,
-} from './SendNFTContent';
+import { SendNFTContentProvider, useSendNFTContent } from './SendNFTContent';
 
 import type { SendRoutesParams } from '../../../../routes';
+import type { ModalScreenProps } from '../../../../routes/types';
+import type { PreSendParams } from '../../../Send/types';
+import type { SelectAsset } from './SendNFTContent';
 
 type NavigationProps = ModalScreenProps<SendRoutesParams>;
 
@@ -79,17 +72,8 @@ function List({
   accountId: string;
   networkId: string;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { bottom } = useSafeAreaInsets();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const isSmallScreen = useIsVerticalLayout();
-
-  const { network } = useNetwork({ networkId });
-
-  const intl = useIntl();
   const content = useSendNFTContent();
   const { listData } = content?.context ?? { listData: [] };
-  const multiSelect = content?.context.multiSelect;
   const [pageWidth, setPageWidth] = useState<number>(0);
   const { cardWidth, numColumns } = useGridListLayout({
     maxCardWidth: 112,
@@ -138,8 +122,6 @@ function SendButton({
   accountId: string;
   networkId: string;
 }) {
-  const isVerticalLayout = useIsVerticalLayout();
-
   const content = useSendNFTContent();
   const { bottom } = useSafeAreaInsets();
   const intl = useIntl();
@@ -213,11 +195,8 @@ function SendNFTList({
   const intl = useIntl();
   const { account } = useActiveSideAccount({ accountId, networkId });
   const { network } = useNetwork({ networkId });
-  const { devMode } = useSettings();
-  const enableMultiSelect = devMode?.enable;
   const multiSelect = Boolean(
-    enableMultiSelect &&
-      network &&
+    network &&
       (batchTransferContractAddress[network.id] || network.impl === IMPL_SOL),
   );
 

@@ -1,11 +1,14 @@
 import { secp256k1 } from '@onekeyfe/blockchain-libs/dist/secret/curves';
 
-import { COINTYPE_CFX as COIN_TYPE } from '../../../constants';
+import { COINTYPE_CFX as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
+
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBVariantAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringImportedBase } from '../../keyring/KeyringImportedBase';
-import { IPrepareImportedAccountsParams } from '../../types';
+
+import type { DBVariantAccount } from '../../../types/account';
+import type { IPrepareImportedAccountsParams } from '../../types';
 
 export class KeyringImported extends KeyringImportedBase {
   override async getSigners(password: string, addresses: Array<string>) {
@@ -36,10 +39,7 @@ export class KeyringImported extends KeyringImportedBase {
       this.networkId,
       pub,
     );
-    const baseAddress = await this.engine.providerManager.addressToBase(
-      this.networkId,
-      addressOnNetwork,
-    );
+    const baseAddress = await this.vault.addressToBase(addressOnNetwork);
     return Promise.resolve([
       {
         id: `imported--${COIN_TYPE}--${pub}`,

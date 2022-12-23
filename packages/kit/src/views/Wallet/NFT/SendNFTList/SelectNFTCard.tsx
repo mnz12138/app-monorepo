@@ -1,15 +1,17 @@
-import React, { ComponentProps, memo, useCallback } from 'react';
-import type { FC } from 'react';
+import { memo, useCallback } from 'react';
+import type { ComponentProps, FC } from 'react';
 
 import { MotiView } from 'moti';
 
 import { Box, Icon, Pressable, Text } from '@onekeyhq/components';
-import { IMPL_EVM, IMPL_SOL } from '@onekeyhq/engine/src/constants';
+import { IMPL_EVM, IMPL_SOL } from '@onekeyhq/shared/src/engine/engineConsts';
 
 import { useActiveSideAccount } from '../../../../hooks';
 import NFTListImage from '../NFTList/NFTListImage';
 
-import { SelectAsset, useSendNFTContent } from './SendNFTContent';
+import { useSendNFTContent } from './SendNFTContent';
+
+import type { SelectAsset } from './SendNFTContent';
 
 type Props = ComponentProps<typeof Box> & {
   cardWidth: number;

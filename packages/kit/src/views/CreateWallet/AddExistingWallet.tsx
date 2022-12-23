@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
 
 import {
@@ -13,16 +13,15 @@ import {
   useIsVerticalLayout,
   useToast,
 } from '@onekeyhq/components';
-import { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
 import { getClipboard } from '@onekeyhq/components/src/utils/ClipboardUtils';
-import { OnekeyNetwork } from '@onekeyhq/engine/src/presets/networkIds';
 import { UserInputCategory } from '@onekeyhq/engine/src/types/credential';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import NameServiceResolver, {
   useNameServiceStatus,
 } from '@onekeyhq/kit/src/components/NameServiceResolver';
 import { useGeneral, useRuntime } from '@onekeyhq/kit/src/hooks/redux';
-import {
+import type {
   CreateWalletRoutesParams,
   IAddExistingWalletModalParams,
   IAddImportedAccountDoneModalParams,
@@ -34,7 +33,8 @@ import {
   ModalRoutes,
   RootRoutes,
 } from '@onekeyhq/kit/src/routes/routesEnum';
-import { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 import supportedNFC from '@onekeyhq/shared/src/detector/nfc';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
@@ -45,6 +45,8 @@ import { useWalletName } from '../../hooks/useWalletName';
 import { wait } from '../../utils/helper';
 import { useOnboardingContext } from '../Onboarding/OnboardingContext';
 import { EOnboardingRoutes } from '../Onboarding/routes/enums';
+
+import type { RouteProp } from '@react-navigation/core';
 
 type NavigationProps = ModalScreenProps<CreateWalletRoutesParams>;
 
@@ -107,6 +109,14 @@ function useAddExistingWallet({
     }
     return onlyForcategory;
   }, [mode]);
+
+  const navigation = useNavigation();
+  const onFailure = useCallback(() => {
+    const stack = navigation.getParent() || navigation;
+    if (stack.canGoBack()) {
+      stack.goBack();
+    }
+  }, [navigation]);
 
   const onSubmit = useCallback(
     async (values: AddExistingWalletValues) => {
@@ -231,6 +241,7 @@ function useAddExistingWallet({
             );
             onboardingDone({ showOnBoardingLoading: true });
           },
+          onFailure,
         });
       }
     },
@@ -243,6 +254,7 @@ function useAddExistingWallet({
       onAddWatchingDone,
       onMultipleResults,
       onboardingDone,
+      onFailure,
       toast,
       wallets,
     ],

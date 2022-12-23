@@ -24,13 +24,11 @@ import {
   useActiveWalletAccount,
   useAppSelector,
 } from '@onekeyhq/kit/src/hooks/redux';
-import {
-  StackBasicRoutesParams,
-  StackRoutes,
-} from '@onekeyhq/kit/src/routes/Dev';
+import type { StackBasicRoutesParams } from '@onekeyhq/kit/src/routes/Dev';
+import { StackRoutes } from '@onekeyhq/kit/src/routes/Dev';
+import type { HomeRoutesParams } from '@onekeyhq/kit/src/routes/types';
 import {
   HomeRoutes,
-  HomeRoutesParams,
   ModalRoutes,
   RootRoutes,
 } from '@onekeyhq/kit/src/routes/types';
@@ -555,7 +553,7 @@ export const Debug = () => {
               {...pressableProps}
               onPress={() => handleBatchTransfer()}
             >
-              <Typography.Body1>Batch Transfer ETH</Typography.Body1>
+              <Typography.Body1>Batch Transfer ETH 0</Typography.Body1>
             </Pressable>
             <Pressable
               {...pressableProps}

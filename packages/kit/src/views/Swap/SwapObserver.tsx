@@ -1,24 +1,19 @@
-import React, { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
-import simpleDb from '@onekeyhq/engine/src/dbs/simple/simpleDb';
-import { Account } from '@onekeyhq/engine/src/types/account';
+import { useIsFocused } from '@react-navigation/native';
+
+import type { Account } from '@onekeyhq/engine/src/types/account';
 import {
   AppUIEventBusNames,
   appUIEventBus,
 } from '@onekeyhq/shared/src/eventBus/appUIEventBus';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
-import { useAppSelector, useNavigation } from '../../hooks';
+import { useAppSelector, useNavigation, usePrevious } from '../../hooks';
 import { ModalRoutes, RootRoutes } from '../../routes/types';
 
 import { SwapRoutes } from './typings';
-
-const NetworkObserver = () => {
-  useEffect(() => {
-    backgroundApiProxy.serviceSwap.setDefaultInputToken();
-  }, []);
-  return null;
-};
+import { stringifyTokens } from './utils';
 
 const AccountsObserver = () => {
   useEffect(() => {
@@ -37,19 +32,30 @@ const AccountsObserver = () => {
   return null;
 };
 
-const TokenUpdater = () => {
+const UserSelectedQuoterObserver = () => {
+  const inputToken = useAppSelector((s) => s.swap.inputToken);
+  const outputToken = useAppSelector((s) => s.swap.outputToken);
+  const tokensHash = useMemo(
+    () => stringifyTokens(inputToken, outputToken),
+    [inputToken, outputToken],
+  );
+  const prevTokensHash = usePrevious(tokensHash);
   useEffect(() => {
-    backgroundApiProxy.serviceSwap.getSwapTokens();
-  }, []);
+    if (tokensHash !== prevTokensHash) {
+      backgroundApiProxy.serviceSwap.clearUserSelectedQuoter();
+    }
+  }, [tokensHash, prevTokensHash]);
   return null;
 };
 
 const WelcomeObserver = () => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   useEffect(() => {
     async function main() {
-      const swapWelcomeShown = await simpleDb.setting.getSwapWelcomeShown();
-      if (swapWelcomeShown) {
+      const swapWelcomeShown =
+        await backgroundApiProxy.serviceSwap.getSwapWelcomeShown();
+      if (swapWelcomeShown || !isFocused) {
         return;
       }
       navigation.navigate(RootRoutes.Modal, {
@@ -59,16 +65,16 @@ const WelcomeObserver = () => {
         },
       });
     }
-    main();
-  }, [navigation]);
+    const timer = setTimeout(main, 1000);
+    return () => clearTimeout(timer);
+  }, [navigation, isFocused]);
   return null;
 };
 
 const SwapListener = () => (
   <>
-    <NetworkObserver />
     <AccountsObserver />
-    <TokenUpdater />
+    <UserSelectedQuoterObserver />
     <WelcomeObserver />
   </>
 );

@@ -4,26 +4,21 @@ import { defaultAbiCoder } from '@ethersproject/abi';
 import { ethers } from '@onekeyfe/blockchain-libs';
 import { toBigIntHex } from '@onekeyfe/blockchain-libs/dist/basic/bignumber-plus';
 import { Geth } from '@onekeyfe/blockchain-libs/dist/provider/chains/eth/geth';
-import { Provider as EthProvider } from '@onekeyfe/blockchain-libs/dist/provider/chains/eth/provider';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import {
-  PartialTokenInfo,
-  TransactionStatus,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
+import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import BigNumber from 'bignumber.js';
 import { difference, isNil, isString, merge, reduce, toLower } from 'lodash';
 import memoizee from 'memoizee';
 
 import { getTimeDurationMs } from '@onekeyhq/kit/src/utils/helper';
-import {
+import type {
   BatchSendConfirmPayloadInfo,
   SendConfirmPayloadInfo,
 } from '@onekeyhq/kit/src/views/Send/types';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
+import { HISTORY_CONSTS } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { HISTORY_CONSTS } from '../../../constants';
 import { NotImplemented, OneKeyInternalError } from '../../../errors';
 import * as covalentApi from '../../../managers/covalent';
 import {
@@ -33,44 +28,13 @@ import {
   getNFTTransactionHistory,
 } from '../../../managers/nft';
 import { batchTransferContractAddress } from '../../../presets/batchTransferContractAddress';
-import { OnekeyNetwork } from '../../../presets/networkIds';
 import { extractResponseError, fillUnsignedTxObj } from '../../../proxy';
-import { ICovalentHistoryListItem } from '../../../types/covalent';
+import { HistoryEntryStatus } from '../../../types/history';
+import { ETHMessageTypes } from '../../../types/message';
 import {
-  HistoryEntry,
-  HistoryEntryStatus,
-  HistoryEntryTransaction,
-} from '../../../types/history';
-import {
-  AptosMessage,
-  ETHMessage,
-  ETHMessageTypes,
-} from '../../../types/message';
-import { EIP1559Fee } from '../../../types/network';
-import { NFTTransaction } from '../../../types/nft';
-import { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
-import {
-  IApproveInfo,
-  IDecodedTx,
-  IDecodedTxAction,
   IDecodedTxActionType,
-  IDecodedTxInteractInfo,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IEncodedTxUpdateOptions,
-  IEncodedTxUpdatePayloadTokenApprove,
-  IEncodedTxUpdatePayloadTransfer,
   IEncodedTxUpdateType,
-  IFeeInfo,
-  IFeeInfoUnit,
-  IHistoryTx,
-  INFTInfo,
-  IRawTx,
-  ISetApprovalForAll,
-  ISignCredentialOptions,
-  ITransferInfo,
-  IUnsignedTxPro,
 } from '../../types';
 import { convertFeeValueToGwei } from '../../utils/feeInfoUtils';
 import { VaultBase } from '../../VaultBase';
@@ -82,8 +46,6 @@ import {
   Erc721MethodSelectors,
 } from './decoder/abi';
 import {
-  EVMDecodedItemERC20Approve,
-  EVMDecodedItemERC20Transfer,
   EVMDecodedTxType,
   EVMTxDecoder,
   InfiniteAmountHex,
@@ -95,9 +57,48 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import settings from './settings';
-import { IRpcTxEvm } from './types';
 
 import type { Account, DBAccount } from '../../../types/account';
+import type { ICovalentHistoryListItem } from '../../../types/covalent';
+import type {
+  HistoryEntry,
+  HistoryEntryTransaction,
+} from '../../../types/history';
+import type { AptosMessage, ETHMessage } from '../../../types/message';
+import type { EIP1559Fee } from '../../../types/network';
+import type { NFTTransaction } from '../../../types/nft';
+import type { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import type {
+  IApproveInfo,
+  IDecodedTx,
+  IDecodedTxAction,
+  IDecodedTxInteractInfo,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IEncodedTxUpdateOptions,
+  IEncodedTxUpdatePayloadTokenApprove,
+  IEncodedTxUpdatePayloadTransfer,
+  IFeeInfo,
+  IFeeInfoUnit,
+  IHistoryTx,
+  INFTInfo,
+  IRawTx,
+  ISetApprovalForAll,
+  ISignCredentialOptions,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
+import type {
+  EVMDecodedItemERC20Approve,
+  EVMDecodedItemERC20Transfer,
+} from './decoder/decoder';
+import type { IRpcTxEvm } from './types';
+import type { Provider as EthProvider } from '@onekeyfe/blockchain-libs/dist/provider/chains/eth/provider';
+import type {
+  PartialTokenInfo,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 const OPTIMISM_NETWORKS: string[] = [
   OnekeyNetwork.optimism,
@@ -108,6 +109,7 @@ export type IUnsignedMessageEvm = (AptosMessage | ETHMessage) & {
   payload?: any;
 };
 
+// TODO move to types.ts
 export type IEncodedTxEvm = {
   from: string;
   to: string;
@@ -156,13 +158,6 @@ export default class Vault extends VaultBase {
     watching: KeyringWatching,
     external: KeyringWatching,
   };
-
-  private async _correctDbAccountAddress(dbAccount: DBAccount) {
-    dbAccount.address = await this.engine.providerManager.selectAccountAddress(
-      this.networkId,
-      dbAccount,
-    );
-  }
 
   override async getEthersProvider() {
     const network = await this.getNetwork();
@@ -1203,6 +1198,36 @@ export default class Vault extends VaultBase {
       'latest',
     ]);
     return new BigNumber(rawAllowanceHex as string).shiftedBy(-token.decimals);
+  }
+
+  override async batchTokensAllowance(
+    tokenAddress: string,
+    spenderAddresses: string[],
+  ): Promise<number[]> {
+    const calls: { to: string; data: string }[] = [];
+    for (let i = 0; i < spenderAddresses.length; i += 1) {
+      const spenderAddress = spenderAddresses[i];
+      const [dbAccount, token] = await Promise.all([
+        this.getDbAccount(),
+        this.engine.ensureTokenInDB(this.networkId, tokenAddress),
+      ]);
+
+      if (typeof token === 'undefined') {
+        // This will be catched by engine.
+        console.error(`Token not found: ${tokenAddress}`);
+        throw new Error();
+      }
+
+      const allowanceMethodID = '0xdd62ed3e';
+      const data = `${allowanceMethodID}${defaultAbiCoder
+        .encode(['address', 'address'], [dbAccount.address, spenderAddress])
+        .slice(2)}`;
+      calls.push({ to: token.tokenIdOnNetwork, data });
+    }
+    const client = await this.getJsonRPCClient();
+    const rawAllowanceHexCallResults = await client.batchEthCall(calls);
+
+    return rawAllowanceHexCallResults.map((value) => Number(value));
   }
 
   override async getOutputAccount(): Promise<Account> {

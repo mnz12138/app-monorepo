@@ -1,22 +1,23 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import { hashes } from 'xrpl';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_XRP as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_XRP as COIN_TYPE } from '../../../constants';
 import { NotImplemented, OneKeyHardwareError } from '../../../errors';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
-import {
+
+import type { DBSimpleAccount } from '../../../types/account';
+import type {
   IHardwareGetAddressParams,
   IPrepareHardwareAccountsParams,
 } from '../../types';
-
-import { IEncodedTxXrp } from './types';
+import type { IEncodedTxXrp } from './types';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'`;
 
@@ -44,7 +45,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!response.success) {
       debugLogger.common.error(response.payload);
-      throw deviceUtils.convertDeviceError(response.payload);
+      throw convertDeviceError(response.payload);
     }
 
     const ret = [];
@@ -52,7 +53,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     for (const addressInfo of response.payload) {
       const { address, path, publicKey } = addressInfo;
       if (address) {
-        const name = (names || [])[index] || `XRP #${indexes[index] + 1}`;
+        const name = (names || [])[index] || `RIPPLE #${indexes[index] + 1}`;
         ret.push({
           id: `${this.walletId}--${path}`,
           name,
@@ -81,7 +82,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   override async signTransaction(unsignedTx: UnsignedTx): Promise<SignedTx> {
@@ -99,6 +100,7 @@ export class KeyringHardware extends KeyringHardwareBase {
         payment: {
           amount: +encodedTx.Amount,
           destination: encodedTx.Destination,
+          destinationTag: encodedTx.DestinationTag ?? undefined,
         },
       },
     };
@@ -120,7 +122,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   signMessage(): Promise<string[]> {

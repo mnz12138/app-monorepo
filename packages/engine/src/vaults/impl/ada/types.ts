@@ -1,5 +1,4 @@
-import { IDecodedTxDirection, ITransferInfo } from '../../types';
-
+import type { IDecodedTxDirection, ITransferInfo } from '../../types';
 import type { PROTO } from '@onekeyfe/hd-core';
 
 export type BIP32Path = number[];
@@ -125,6 +124,7 @@ export type IEncodedTxADA = {
   transferInfo: ITransferInfo;
   tx: ITxInfo;
   changeAddress: IChangeAddress;
+  signOnly?: boolean;
 };
 
 export type IAdaHistory = {

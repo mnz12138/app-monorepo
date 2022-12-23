@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
-import { NavigationProp } from '@react-navigation/core';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { isEmpty, map } from 'lodash';
 import { useIntl } from 'react-intl';
@@ -14,11 +13,12 @@ import {
   Text,
   useToast,
 } from '@onekeyhq/components';
-import {
-  OneKeyError,
-  OneKeyErrorClassNames,
-} from '@onekeyhq/engine/src/errors';
-import { IEncodedTx, ISignedTx } from '@onekeyhq/engine/src/vaults/types';
+import type { OneKeyError } from '@onekeyhq/engine/src/errors';
+import { OneKeyErrorClassNames } from '@onekeyhq/engine/src/errors';
+import type {
+  IEncodedTx,
+  ISignedTxPro,
+} from '@onekeyhq/engine/src/vaults/types';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
@@ -30,13 +30,16 @@ import { deviceUtils } from '../../../utils/hardware';
 import { wait } from '../../../utils/helper';
 import { BaseSendModal } from '../components/BaseSendModal';
 import { BatchSendState } from '../enums';
-import {
+import { useBatchSendConfirmDecodedTxs } from '../utils/useBatchSendConfirmDecodedTxs';
+
+import type {
   ISendAuthenticationModalTitleInfo,
   SendConfirmPayloadInfo,
   SendRoutes,
   SendRoutesParams,
 } from '../types';
-import { useBatchSendConfirmDecodedTxs } from '../utils/useBatchSendConfirmDecodedTxs';
+import type { NavigationProp } from '@react-navigation/core';
+import type { RouteProp } from '@react-navigation/native';
 
 type RouteProps = RouteProp<SendRoutesParams, SendRoutes.BatchSendProgress>;
 type NavigationProps = NavigationProp<
@@ -104,8 +107,8 @@ function SendProgress({
     return waitUntilInProgress();
   }, [progressState]);
 
-  const sendTxs = useCallback(async (): Promise<ISignedTx[]> => {
-    const result: ISignedTx[] = [];
+  const sendTxs = useCallback(async (): Promise<ISignedTxPro[]> => {
+    const result: ISignedTxPro[] = [];
     for (let i = 0; i < encodedTxs.length; i += 1) {
       await waitUntilInProgress();
       setCurrentProgress(i + 1);
@@ -121,7 +124,7 @@ function SendProgress({
             id: tx.txid,
           })),
         });
-      result.push(signedTx as ISignedTx);
+      result.push(signedTx as ISignedTxPro);
       await wait(3000);
       debugLogger.sendTx.info(
         'Authentication sendTx DONE:',
@@ -150,7 +153,7 @@ function SendProgress({
       submitted.current = true;
       let submitEncodedTxs: IEncodedTx[] = encodedTxs;
       let result: any;
-      let signedTxs: ISignedTx[] = [];
+      let signedTxs: ISignedTxPro[] = [];
 
       if (!isEmpty(submitEncodedTxs)) {
         signedTxs = await sendTxs();
@@ -161,7 +164,12 @@ function SendProgress({
         }
 
         // encodedTx will be edit by buildUnsignedTx, re-assign encodedTx
-        const encodedTxsTemp = map(signedTxs, 'encodedTx');
+        const encodedTxsTemp = map(signedTxs, 'encodedTx').filter(Boolean);
+        if (encodedTxsTemp.length !== signedTxs.length) {
+          throw new Error(
+            'signedTxs including null encodedTx, please check code',
+          );
+        }
         submitEncodedTxs = isEmpty(encodedTxsTemp)
           ? submitEncodedTxs
           : encodedTxsTemp;
@@ -289,27 +297,25 @@ function SendProgress({
         <Progress.Circle
           progress={progress}
           text={
-            <>
-              <Text
-                typography="Body2Strong"
-                color="text-subdued"
-                textAlign="center"
-              >
-                {intl.formatMessage(
-                  {
-                    id: 'form__str_transactions',
-                  },
-                  {
-                    0: (
-                      <Text
-                        typography="DisplayMedium"
-                        textAlign="center"
-                      >{`${currentFinished} / ${txCount}\n`}</Text>
-                    ),
-                  },
-                )}
-              </Text>
-            </>
+            <Text
+              typography="Body2Strong"
+              color="text-subdued"
+              textAlign="center"
+            >
+              {intl.formatMessage(
+                {
+                  id: 'form__str_transactions',
+                },
+                {
+                  0: (
+                    <Text
+                      typography="DisplayMedium"
+                      textAlign="center"
+                    >{`${currentFinished} / ${txCount}\n`}</Text>
+                  ),
+                },
+              )}
+            </Text>
           }
         />
       </Box>

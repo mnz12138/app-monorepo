@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
+import {
+  encode as toCfxAddress,
+  decode as toEthAddress,
+} from '@conflux-dev/conflux-address-js';
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { toBigIntHex } from '@onekeyfe/blockchain-libs/dist/basic/bignumber-plus';
-import { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import {
-  PartialTokenInfo,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
+import { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
 import { Conflux, address as confluxAddress } from 'js-conflux-sdk';
@@ -22,27 +21,13 @@ import {
   OneKeyInternalError,
 } from '../../../errors';
 import { extractResponseError, fillUnsignedTx } from '../../../proxy';
-import { Account, DBAccount, DBVariantAccount } from '../../../types/account';
-import { Token } from '../../../types/token';
-import { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import { DBAccount } from '../../../types/account';
 import {
-  IApproveInfo,
-  IDecodedTx,
-  IDecodedTxAction,
   IDecodedTxActionTokenTransfer,
   IDecodedTxActionType,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IEncodedTxUpdateOptions,
-  IEncodedTxUpdatePayloadTransfer,
   IEncodedTxUpdateType,
-  IFeeInfo,
-  IFeeInfoUnit,
-  IHistoryTx,
   ISignCredentialOptions,
-  ITransferInfo,
-  IUnsignedTxPro,
 } from '../../types';
 import {
   convertFeeGweiToValue,
@@ -55,16 +40,34 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import settings from './settings';
-import {
-  IEncodedTxCfx,
-  IOnChainTransferType,
-  ITxOnChainHistoryResp,
-} from './types';
+import { IOnChainTransferType } from './types';
 import {
   getApiExplorerTransferType,
   getTransactionStatus,
   parseTransaction,
 } from './utils';
+
+import type { Account, DBVariantAccount } from '../../../types/account';
+import type { Token } from '../../../types/token';
+import type { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import type {
+  IApproveInfo,
+  IDecodedTx,
+  IDecodedTxAction,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IEncodedTxUpdateOptions,
+  IEncodedTxUpdatePayloadTransfer,
+  IFeeInfo,
+  IFeeInfoUnit,
+  IHistoryTx,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
+import type { IEncodedTxCfx, ITxOnChainHistoryResp } from './types';
+import type { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type { PartialTokenInfo } from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 const TOKEN_TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 const TOKEN_APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
@@ -388,17 +391,16 @@ export default class Vault extends VaultBase {
       address: dbAccount.addresses?.[this.networkId] || '',
     };
     if (ret.address.length === 0) {
-      // TODO: remove selectAccountAddress from proxy
-      const address = await this.engine.providerManager.selectAccountAddress(
+      const addressOnNetwork = await this.engine.providerManager.addressFromPub(
         this.networkId,
-        dbAccount,
+        dbAccount.pub,
       );
       await this.engine.dbApi.addAccountAddress(
         dbAccount.id,
         this.networkId,
-        address,
+        addressOnNetwork,
       );
-      ret.address = address;
+      ret.address = addressOnNetwork;
     }
     return ret;
   }
@@ -703,6 +705,17 @@ export default class Vault extends VaultBase {
     const start = performance.now();
     const latestBlock = await client.getEpochNumber();
     return { responseTime: Math.floor(performance.now() - start), latestBlock };
+  }
+
+  override async addressFromBase(baseAddress: string) {
+    const chainId = await this.getNetworkChainId();
+    return toCfxAddress(baseAddress, parseInt(chainId));
+  }
+
+  override async addressToBase(address: string) {
+    return Promise.resolve(
+      `0x${toEthAddress(address).hexAddress.toString('hex')}`,
+    );
   }
 
   createClientFromURL(url: string): BaseClient {

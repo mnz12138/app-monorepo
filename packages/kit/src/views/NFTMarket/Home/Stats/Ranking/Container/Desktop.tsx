@@ -1,10 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { BigNumber } from 'bignumber.js';
 import { MotiView } from 'moti';
 import { Row } from 'native-base';
 import { useIntl } from 'react-intl';
-import { ListRenderItem } from 'react-native';
 
 import {
   Badge,
@@ -13,13 +12,15 @@ import {
   ListItem,
   useUserDevice,
 } from '@onekeyhq/components';
-import { NFTMarketRanking } from '@onekeyhq/engine/src/types/nft';
+import type { NFTMarketRanking } from '@onekeyhq/engine/src/types/nft';
 
 import CollectionLogo from '../../../../CollectionLogo';
 import { PriceString } from '../../../../PriceText';
 import { useCollectionDetail } from '../../../hook';
 import { useStatsListContext } from '../../context';
 import EmptyView from '../../EmptyView';
+
+import type { ListRenderItem } from 'react-native';
 
 const ListHeaderComponent = () => {
   const intl = useIntl();

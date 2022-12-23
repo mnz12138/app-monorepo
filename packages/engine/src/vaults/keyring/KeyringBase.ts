@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 // eslint-disable-next-line max-classes-per-file
-import { DBAccount } from '../../types/account';
-import { IGetAddressParams, IVaultOptions } from '../types';
+import { IVaultOptions } from '../types';
 import { VaultContext } from '../VaultContext';
 
+import type { DBAccount } from '../../types/account';
 import type { CredentialSelector } from '../../types/credential';
-import type { IPrepareAccountsParams, ISignCredentialOptions } from '../types';
+import type {
+  IGetAddressParams,
+  IPrepareAccountsParams,
+  ISignCredentialOptions,
+  ISignedTxPro,
+  IUnsignedTxPro,
+} from '../types';
 import type { VaultBase } from '../VaultBase';
 import type {
   SignedTx,
@@ -22,9 +28,9 @@ export abstract class KeyringBase extends VaultContext {
 
   // TODO: check history is added
   abstract signTransaction(
-    unsignedTx: UnsignedTx,
+    unsignedTx: IUnsignedTxPro,
     options: ISignCredentialOptions,
-  ): Promise<SignedTx>;
+  ): Promise<ISignedTxPro>;
 
   // TODO: check history is added
   abstract signMessage(

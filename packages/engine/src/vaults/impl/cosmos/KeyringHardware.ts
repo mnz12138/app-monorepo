@@ -1,18 +1,12 @@
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import { HardwareError } from '@onekeyfe/hd-shared';
 
-import {
-  AccountType,
-  DBVariantAccount,
-} from '@onekeyhq/engine/src/types/account';
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import type { DBVariantAccount } from '@onekeyhq/engine/src/types/account';
+import { AccountType } from '@onekeyhq/engine/src/types/account';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_COSMOS as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_COSMOS as COIN_TYPE } from '../../../constants';
 import { OneKeyHardwareError } from '../../../errors';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
 import { stripHexPrefix } from '../../utils/hexUtils';
@@ -25,6 +19,10 @@ import type {
   IPrepareHardwareAccountsParams,
 } from '../../types';
 import type { IEncodedTxCosmos } from './type';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'`;
 // @ts-ignore
@@ -56,7 +54,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!response.success) {
       debugLogger.common.error(response.payload);
-      throw deviceUtils.convertDeviceError(response.payload);
+      throw convertDeviceError(response.payload);
     }
 
     const pubKeys = response.payload
@@ -99,7 +97,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     }
     if (!publicKeyResponse.success) {
       debugLogger.common.error(publicKeyResponse.payload);
-      throw deviceUtils.convertDeviceError(publicKeyResponse.payload);
+      throw convertDeviceError(publicKeyResponse.payload);
     }
 
     const ret = [];
@@ -145,7 +143,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload?.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   async signTransaction(unsignedTx: UnsignedTx): Promise<SignedTx> {
@@ -180,6 +178,6 @@ export class KeyringHardware extends KeyringHardwareBase {
       };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 }

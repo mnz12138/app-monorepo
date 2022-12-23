@@ -1,11 +1,12 @@
-import React, { ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
+import { memo } from 'react';
 
 import { Image } from '@onekeyhq/components';
-import { isExternalAccount } from '@onekeyhq/engine/src/engineUtils';
-import { IAccount } from '@onekeyhq/engine/src/types';
+import type { IAccount } from '@onekeyhq/engine/src/types';
 import ImgImToken from '@onekeyhq/kit/assets/onboarding/logo_imtoken.png';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ImgMetaMask from '@onekeyhq/kit/assets/onboarding/logo_metamask.png';
+import { isExternalAccount } from '@onekeyhq/shared/src/engine/engineUtils';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { usePromiseResult } from '../../../hooks/usePromiseResult';
@@ -30,7 +31,7 @@ function ExternalAccountImg({
   accountId,
   account,
   size = 6,
-  radius = '6px',
+  radius = '6',
   ...others
 }: ComponentProps<typeof Image> & {
   accountId: string;
@@ -78,4 +79,4 @@ function ExternalAccountImg({
   // return <MockExternalAccountImg {...others} />;
 }
 
-export default React.memo(ExternalAccountImg);
+export default memo(ExternalAccountImg);

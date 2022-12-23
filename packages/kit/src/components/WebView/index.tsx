@@ -1,12 +1,5 @@
-import { ComponentProps, useCallback } from 'react';
-
-import { IJsBridgeReceiveHandler } from '@onekeyfe/cross-inpage-provider-types';
-import { IWebViewWrapperRef } from '@onekeyfe/onekey-cross-webview';
-import {
-  WebViewNavigation,
-  WebViewOpenWindowEvent,
-  WebViewSource,
-} from 'react-native-webview/lib/WebViewTypes';
+import type { ComponentProps, FC } from 'react';
+import { useCallback } from 'react';
 
 import { Box, Button, Center } from '@onekeyhq/components';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
@@ -16,23 +9,15 @@ import extUtils from '../../utils/extUtils';
 
 import InpageProviderWebView from './InpageProviderWebView';
 
-function WebView({
-  id,
-  src = '',
-  onSrcChange,
-  openUrlInExt = false,
-  onWebViewRef,
-  onNavigationStateChange,
-  allowpopups = false,
-  containerProps,
-  customReceiveHandler,
-  nativeWebviewSource,
-  nativeInjectedJavaScriptBeforeContentLoaded,
-  isSpinnerLoading,
-  onContentLoaded,
-  onOpenWindow,
-  androidLayerType,
-}: {
+import type { IJsBridgeReceiveHandler } from '@onekeyfe/cross-inpage-provider-types';
+import type { IWebViewWrapperRef } from '@onekeyfe/onekey-cross-webview';
+import type {
+  WebViewNavigation,
+  WebViewOpenWindowEvent,
+  WebViewSource,
+} from 'react-native-webview/lib/WebViewTypes';
+
+interface WebViewProps {
   id?: string;
   src?: string;
   onSrcChange?: (src: string) => void;
@@ -48,7 +33,17 @@ function WebView({
   onContentLoaded?: () => void; // currently works in NativeWebView only
   onOpenWindow?: (event: WebViewOpenWindowEvent) => void;
   androidLayerType?: 'none' | 'software' | 'hardware';
-}): JSX.Element {
+}
+
+const WebView: FC<WebViewProps> = ({
+  src = '',
+  openUrlInExt = false,
+  allowpopups = false,
+  onWebViewRef = () => {},
+  customReceiveHandler,
+  containerProps,
+  ...rest
+}) => {
   const receiveHandler = useCallback<IJsBridgeReceiveHandler>(
     async (payload, hostBridge) => {
       const result = await backgroundApiProxy.bridgeReceiveHandler(payload);
@@ -76,29 +71,14 @@ function WebView({
   return (
     <Box flex={1} bg="background-default" {...containerProps}>
       <InpageProviderWebView
-        id={id}
-        ref={(ref: IWebViewWrapperRef | null) => {
-          if (ref) {
-            onWebViewRef?.(ref);
-          }
-        }}
+        ref={onWebViewRef}
         src={src}
-        isSpinnerLoading={isSpinnerLoading}
-        onSrcChange={onSrcChange}
-        receiveHandler={receiveHandler}
-        onNavigationStateChange={onNavigationStateChange}
         allowpopups={allowpopups}
-        nativeWebviewSource={nativeWebviewSource}
-        nativeInjectedJavaScriptBeforeContentLoaded={
-          nativeInjectedJavaScriptBeforeContentLoaded
-        }
-        // currently works in NativeWebView only
-        onContentLoaded={onContentLoaded}
-        onOpenWindow={onOpenWindow}
-        androidLayerType={androidLayerType}
+        receiveHandler={receiveHandler}
+        {...rest}
       />
     </Box>
   );
-}
+};
 
 export default WebView;

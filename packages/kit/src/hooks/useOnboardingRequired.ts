@@ -3,20 +3,18 @@ import { useCallback, useEffect } from 'react';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import backgroundApiProxy from '../background/instance/backgroundApiProxy';
-import {
-  HomeRoutes,
-  ModalScreenProps,
-  RootRoutes,
-  RootRoutesParams,
-} from '../routes/types';
+import { HomeRoutes, RootRoutes } from '../routes/types';
 import { setHomePageCheckBoarding } from '../store/reducers/data';
 import { setOnBoardingLoadingBehindModal } from '../store/reducers/runtime';
 import { wait } from '../utils/helper';
+import { EOnboardingRoutes } from '../views/Onboarding/routes/enums';
 
 import { useAppSelector } from './redux';
 import useAppNavigation from './useAppNavigation';
 import useNavigation from './useNavigation';
 import { useNavigationActions } from './useNavigationActions';
+
+import type { ModalScreenProps, RootRoutesParams } from '../routes/types';
 
 type NavigationProps = ModalScreenProps<RootRoutesParams>;
 
@@ -35,10 +33,13 @@ export const useOnboardingRequired = (isHomeCheck?: boolean) => {
   useEffect(() => {
     if (!boardingCompleted) {
       if (!isHomeCheck || (isHomeCheck && !homePageCheckBoarding)) {
-        navigation.replace(RootRoutes.Onboarding);
         if (isHomeCheck) {
           backgroundApiProxy.dispatch(setHomePageCheckBoarding());
         }
+        navigation.replace(RootRoutes.Onboarding, {
+          screen: EOnboardingRoutes.Welcome,
+          params: { disableAnimation: !!isHomeCheck },
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

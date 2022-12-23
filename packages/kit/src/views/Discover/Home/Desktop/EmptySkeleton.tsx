@@ -1,6 +1,7 @@
-import { FC, useCallback, useMemo } from 'react';
+import type { ComponentType, FC, ReactElement } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import { ListRenderItem, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import {
   Box,
@@ -10,18 +11,18 @@ import {
   Skeleton,
 } from '@onekeyhq/components';
 
+import type { ListRenderItem } from 'react-native';
+
 type EmptySkeletonContentProps = {
-  ListHeaderComponent?:
-    | React.ComponentType<any>
-    | React.ReactElement
-    | null
-    | undefined;
+  ListHeaderComponent?: ComponentType<any> | ReactElement | null | undefined;
   offset?: number;
 };
 
 type ListEmptyComponentRenderItemProps = {
   offset?: number;
 };
+
+const ItemSeparatorComponent3 = () => <Box h="3" />;
 
 const ListEmptyComponentRenderItem: FC<ListEmptyComponentRenderItemProps> = ({
   offset,
@@ -89,13 +90,15 @@ const ListEmptyComponentRenderItem: FC<ListEmptyComponentRenderItemProps> = ({
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => `${item}`}
         key={`key${numColumns}`}
-        ItemSeparatorComponent={() => <Box h="3" />}
+        ItemSeparatorComponent={ItemSeparatorComponent3}
       />
     ),
     [data, numColumns, renderItem],
   );
   return <Box width="100%">{flatList}</Box>;
 };
+
+const ItemSeparatorComponent8 = () => <Box h="8" />;
 
 export const EmptySkeletonContent: FC<EmptySkeletonContentProps> = ({
   ListHeaderComponent,
@@ -110,7 +113,7 @@ export const EmptySkeletonContent: FC<EmptySkeletonContentProps> = ({
     ListHeaderComponent={ListHeaderComponent}
     renderItem={() => <ListEmptyComponentRenderItem offset={offset} />}
     keyExtractor={(item) => String(item)}
-    ItemSeparatorComponent={() => <Box h="8" />}
+    ItemSeparatorComponent={ItemSeparatorComponent8}
   />
 );
 

@@ -1,10 +1,10 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { DeviceUploadResourceParams } from '@onekeyfe/hd-core';
-import { RouteProp, useRoute } from '@react-navigation/core';
+import { useRoute } from '@react-navigation/core';
 import { useNavigation } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
-import { MessageDescriptor, useIntl } from 'react-intl';
+import { MediaTypeOptions, launchImageLibraryAsync } from 'expo-image-picker';
+import { useIntl } from 'react-intl';
 import { useWindowDimensions } from 'react-native';
 
 import {
@@ -22,21 +22,24 @@ import {
   useSafeAreaInsets,
 } from '@onekeyhq/components/src/Provider/hooks';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
-import {
+import type {
   OnekeyHardwareModalRoutes,
   OnekeyHardwareRoutesParams,
 } from '@onekeyhq/kit/src/routes/Modal/HardwareOnekey';
 import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
-import {
-  HomescreenItem,
-  getHomescreenData,
-} from '@onekeyhq/kit/src/utils/hardware/constants/homescreens';
+import type { HomescreenItem } from '@onekeyhq/kit/src/utils/hardware/constants/homescreens';
+import { getHomescreenData } from '@onekeyhq/kit/src/utils/hardware/constants/homescreens';
 import {
   generateUploadResParams,
   imageCache,
 } from '@onekeyhq/kit/src/utils/hardware/homescreens';
+import { CoreSDKLoader } from '@onekeyhq/shared/src/device/hardwareInstance';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
-import platformEnv from '@onekeyhq/shared/src/platformEnv';
+
+import type { DeviceUploadResourceParams } from '@onekeyfe/hd-core';
+import type { RouteProp } from '@react-navigation/core';
+import type { ImageInfo } from 'expo-image-picker';
+import type { MessageDescriptor } from 'react-intl';
 
 type RouteProps = RouteProp<
   OnekeyHardwareRoutesParams,
@@ -138,7 +141,7 @@ const OnekeyHardwareHomescreen: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploadImages]);
 
-  const addImage = useCallback((imageInfo: ImagePicker.ImageInfo) => {
+  const addImage = useCallback((imageInfo: ImageInfo) => {
     const { uri, height, width } = imageInfo;
     const name = `upload-${Object.keys(imageCache).length}`;
     imageCache[name] = { name, staticPath: uri, height, width };
@@ -146,8 +149,8 @@ const OnekeyHardwareHomescreen: FC = () => {
   }, []);
 
   const pickImage = useCallback(async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 1,
     });
@@ -193,8 +196,10 @@ const OnekeyHardwareHomescreen: FC = () => {
         return;
       }
 
+      const { getHomeScreenHex } = await CoreSDKLoader();
+      const hex = getHomeScreenHex(deviceType, selectedItem.name);
       await serviceHardware.applySettings(connectId, {
-        homescreen: selectedItem.hex,
+        homescreen: hex,
       });
       toast.show({ title: intl.formatMessage({ id: 'msg__change_saved' }) });
       navigation.getParent()?.goBack();
@@ -221,6 +226,7 @@ const OnekeyHardwareHomescreen: FC = () => {
     toast,
     navigation,
     isTouch,
+    deviceType,
   ]);
 
   const { width } = useWindowDimensions();
@@ -375,4 +381,4 @@ const OnekeyHardwareHomescreen: FC = () => {
   );
 };
 
-export default React.memo(OnekeyHardwareHomescreen);
+export default memo(OnekeyHardwareHomescreen);

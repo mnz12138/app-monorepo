@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { OnekeyNetwork } from '@onekeyhq/engine/src/presets/networkIds';
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 
 import backgroundApiProxy from '../background/instance/backgroundApiProxy';
 
@@ -43,15 +43,6 @@ export const useNativeTokenBalance = (
   accountId?: string,
 ) => {
   const balances = useAccountTokensBalance(networkId, accountId);
-  useEffect(() => {
-    if (networkId && accountId) {
-      backgroundApiProxy.serviceToken.fetchTokenBalance({
-        activeAccountId: accountId,
-        activeNetworkId: networkId,
-        tokenIds: [],
-      });
-    }
-  }, [networkId, accountId]);
   return useMemo(() => balances?.main, [balances]);
 };
 

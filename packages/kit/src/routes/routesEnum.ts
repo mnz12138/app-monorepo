@@ -43,8 +43,7 @@ export enum ModalRoutes {
   PushNotification = 'PushNotification',
   Webview = 'Webview',
   Revoke = 'Revoke',
-  SearchNFT = 'SearchNFT',
-  NFTAttributeFilter = 'NFTAttributeFilter',
+  NFTMarket = 'NFTMarket',
 }
 
 export enum RootRoutes {
@@ -89,6 +88,7 @@ export enum HomeRoutes {
   NFTMarketStatsList = 'NFTMarketStatsList',
   NFTMarketLiveMintingList = 'NFTMarketLiveMintingList',
   NFTMarketCollectionScreen = 'NFTMarketCollectionScreen',
+  NFTPNLScreen = 'NFTPNLScreen',
 }
 export enum TabRoutes {
   // Overview = 'overview',
@@ -115,6 +115,7 @@ export enum CreateAccountModalRoutes {
 
 export enum ManageNetworkRoutes {
   NetworkAccountSelector = 'NetworkAccountSelector',
+  NetworkSelector = 'NetworkSelector',
   Listing = 'Listing',
   AddNetwork = 'AddNetwork',
   CustomNetwork = 'CustomNetwork',

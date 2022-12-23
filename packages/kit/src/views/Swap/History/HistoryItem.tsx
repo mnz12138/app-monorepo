@@ -1,4 +1,5 @@
-import React, { FC, useCallback } from 'react';
+import type { FC } from 'react';
+import { useCallback } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { format as dateFormat } from 'date-fns';
@@ -15,13 +16,15 @@ import {
   useIsVerticalLayout,
   useTheme,
 } from '@onekeyhq/components';
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
 
 import { useNetworkSimple } from '../../../hooks';
 import { ModalRoutes, RootRoutes } from '../../../routes/types';
 import SwappingVia from '../components/SwappingVia';
-import { SwapRoutes, TransactionDetails, TransactionStatus } from '../typings';
+import { SwapRoutes } from '../typings';
 import { formatAmount } from '../utils';
+
+import type { TransactionDetails, TransactionStatus } from '../typings';
 
 type HistoryItemStatusProps = { status: TransactionStatus };
 
@@ -181,9 +184,11 @@ const HistoryItemHorizontalView: FC<HistoryItemProps> = ({
           flex="1"
         >
           <HistoryItemStatus status={tx.status} />
-          <Typography.Body2 color="text-subdued" ml="3">
-            {dateFormat(tx.addedTime, 'HH:mm')}
-          </Typography.Body2>
+          <Box flex={1} flexDirection="row" justifyContent="flex-end">
+            <Typography.Body2 color="text-subdued" ml="3" isTruncated>
+              {dateFormat(tx.addedTime, 'HH:mm')}
+            </Typography.Body2>
+          </Box>
         </Box>
       </Pressable>
     </Box>

@@ -1,8 +1,9 @@
 import { RestfulRequest } from '@onekeyfe/blockchain-libs/dist/basic/request/restful';
 import memoizee from 'memoizee';
 
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
+
 import { getFiatEndpoint } from './endpoint';
-import { OnekeyNetwork } from './presets/networkIds';
 
 // https://onekeyhq.atlassian.net/wiki/spaces/ONEKEY/pages/171442184
 export const balanceSupprtedNetwork: string[] = [
@@ -54,7 +55,7 @@ const getBalances = async (
   if (!balanceSupprtedNetwork.includes(networkId)) {
     return;
   }
-  const req = new RestfulRequest(getFiatEndpoint());
+  const req = new RestfulRequest(getFiatEndpoint(), {}, 60 * 1000);
   const query: TokenBalancesQuery = {
     network: networkId,
     address,

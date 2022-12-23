@@ -3,7 +3,6 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useIsFocused } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
-import { SectionListProps } from 'react-native';
 import useSWR from 'swr';
 
 import {
@@ -15,13 +14,11 @@ import {
   useUserDevice,
 } from '@onekeyhq/components';
 import { Tabs } from '@onekeyhq/components/src/CollapsibleTabView';
-import { LocaleIds } from '@onekeyhq/components/src/locale';
-import { HISTORY_CONSTS } from '@onekeyhq/engine/src/constants';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
 import { isAccountCompatibleWithNetwork } from '@onekeyhq/engine/src/managers/account';
-import {
-  IDecodedTxStatus,
-  IHistoryTx,
-} from '@onekeyhq/engine/src/vaults/types';
+import type { IHistoryTx } from '@onekeyhq/engine/src/vaults/types';
+import { IDecodedTxStatus } from '@onekeyhq/engine/src/vaults/types';
+import { HISTORY_CONSTS } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
@@ -37,6 +34,8 @@ import {
 } from './TxHistoryContext';
 import { TxHistoryListViewEmpty } from './TxHistoryListViewEmpty';
 import { TxHistoryListViewHeader } from './TxHistoryListViewHeader';
+
+import type { SectionListProps } from 'react-native';
 
 export type IHistoryListSectionGroup = {
   title?: string;
@@ -68,7 +67,8 @@ function isHistoryTxChanged({
       newTx.id !== oldTx.id ||
       newTx.decodedTx.createdAt !== oldTx.decodedTx.createdAt ||
       newTx.decodedTx.updatedAt !== oldTx.decodedTx.updatedAt ||
-      newTx.decodedTx.status !== oldTx.decodedTx.status
+      newTx.decodedTx.status !== oldTx.decodedTx.status ||
+      newTx.decodedTx.totalFeeInNative !== oldTx.decodedTx.totalFeeInNative
     ) {
       return true;
     }
@@ -170,6 +170,7 @@ function TxHistoryListSectionList(props: {
       <TxListItemView
         historyTx={item}
         isFirst={index === 0}
+        // eslint-disable-next-line no-unsafe-optional-chaining
         isLast={index === section?.data?.length - 1}
       />
     ),

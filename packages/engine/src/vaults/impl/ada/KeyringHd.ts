@@ -1,26 +1,25 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-
+import { COINTYPE_ADA as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ADA as COIN_TYPE } from '../../../constants';
-import { ExportedSeedCredential } from '../../../dbs/base';
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBUTXOAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHdBase } from '../../keyring/KeyringHdBase';
-import {
-  IPrepareSoftwareAccountsParams,
-  ISignCredentialOptions,
-} from '../../types';
 
 import { getPathIndex, getXprvString } from './helper/bip32';
 import { getCardanoApi } from './helper/sdk';
 import { batchGetShelleyAddresses } from './helper/shelley-address';
-import { IAdaUTXO, IEncodedTxADA, NetworkId } from './types';
+import { NetworkId } from './types';
 
+import type { ExportedSeedCredential } from '../../../dbs/base';
+import type { DBUTXOAccount } from '../../../types/account';
+import type {
+  IPrepareSoftwareAccountsParams,
+  ISignCredentialOptions,
+  ISignedTxPro,
+  IUnsignedTxPro,
+} from '../../types';
+import type { IAdaUTXO, IEncodedTxADA } from './types';
 import type Vault from './Vault';
 
 export class KeyringHd extends KeyringHdBase {
@@ -52,6 +51,8 @@ export class KeyringHd extends KeyringHdBase {
     params: IPrepareSoftwareAccountsParams,
   ): Promise<DBUTXOAccount[]> {
     const { password, indexes, names } = params;
+    const ignoreFirst = indexes[0] !== 0;
+    const usedIndexes = [...(ignoreFirst ? [indexes[0] - 1] : []), ...indexes];
     const { entropy } = (await this.engine.dbApi.getCredential(
       this.walletId,
       password,
@@ -60,11 +61,11 @@ export class KeyringHd extends KeyringHdBase {
     const addressInfos = await batchGetShelleyAddresses(
       entropy,
       password,
-      indexes,
+      usedIndexes,
       NetworkId.MAINNET,
     );
 
-    if (addressInfos.length !== indexes.length) {
+    if (addressInfos.length !== usedIndexes.length) {
       throw new OneKeyInternalError('Unable to get address');
     }
 
@@ -77,21 +78,28 @@ export class KeyringHd extends KeyringHdBase {
     for (const info of addressInfos) {
       const { baseAddress, stakingAddress } = info;
       const { address, path, xpub } = baseAddress;
-      const name = (names || [])[index] || `ADA #${indexes[index] + 1}`;
+      const name = (names || [])[index] || `CARDANO #${usedIndexes[index] + 1}`;
       const accountPath = path.slice(0, -4);
-      ret.push({
-        id: `${this.walletId}--${accountPath}`,
-        name,
-        type: AccountType.UTXO,
-        path,
-        coinType: COIN_TYPE,
-        xpub,
-        address,
-        addresses: {
-          [firstAddressRelPath]: address,
-          [stakingAddressPath]: stakingAddress.address,
-        },
-      });
+      if (!ignoreFirst || index > 0) {
+        ret.push({
+          id: `${this.walletId}--${accountPath}`,
+          name,
+          type: AccountType.UTXO,
+          path,
+          coinType: COIN_TYPE,
+          xpub,
+          address,
+          addresses: {
+            [firstAddressRelPath]: address,
+            [stakingAddressPath]: stakingAddress.address,
+          },
+        });
+      }
+
+      if (usedIndexes.length === 1) {
+        // Only getting the first account, ignore balance checking.
+        break;
+      }
 
       const { tx_count: txCount } = await client.getAddressDetails(address);
       if (txCount > 0) {
@@ -107,9 +115,9 @@ export class KeyringHd extends KeyringHdBase {
   }
 
   override async signTransaction(
-    unsignedTx: UnsignedTx,
+    unsignedTx: IUnsignedTxPro,
     options: ISignCredentialOptions,
-  ): Promise<SignedTx> {
+  ): Promise<ISignedTxPro> {
     debugLogger.sendTx.info('signTransaction result', unsignedTx);
     const encodedTx = unsignedTx.payload.encodedTx as unknown as IEncodedTxADA;
     const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
@@ -120,6 +128,8 @@ export class KeyringHd extends KeyringHdBase {
     )) as ExportedSeedCredential;
     const xprv = await getXprvString(password, entropy);
     const accountIndex = getPathIndex(dbAccount.path);
+
+    // sign for dapp if signOnly
     const CardanoApi = await getCardanoApi();
     const { signedTx, txid } = await CardanoApi.signTransaction(
       encodedTx.tx.body,
@@ -127,12 +137,42 @@ export class KeyringHd extends KeyringHdBase {
       Number(accountIndex),
       encodedTx.inputs as unknown as IAdaUTXO[],
       xprv,
+      !!encodedTx.signOnly,
       false,
     );
 
     return {
       rawTx: signedTx,
       txid,
+      encodedTx: unsignedTx.encodedTx,
     };
+  }
+
+  override async signMessage(
+    messages: any[],
+    options: ISignCredentialOptions,
+  ): Promise<string[]> {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+    const { password = '' } = options;
+    const { entropy } = (await this.engine.dbApi.getCredential(
+      this.walletId,
+      password,
+    )) as ExportedSeedCredential;
+    const xprv = await getXprvString(password, entropy);
+    const accountIndex = getPathIndex(dbAccount.path);
+
+    const CardanoApi = await getCardanoApi();
+    const result = await Promise.all(
+      messages.map(
+        ({ payload }: { payload: { addr: string; payload: string } }) =>
+          CardanoApi.dAppUtils.signData(
+            payload.addr,
+            payload.payload,
+            xprv,
+            Number(accountIndex),
+          ),
+      ),
+    );
+    return result.map((ret) => JSON.stringify(ret));
   }
 }

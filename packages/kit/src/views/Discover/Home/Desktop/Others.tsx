@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
+import type { FC } from 'react';
 import {
-  FC,
   createContext,
   useCallback,
   useContext,
@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-import { ListRenderItem, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import {
   Box,
@@ -26,11 +26,13 @@ import { useAppSelector } from '../../../../hooks';
 import { Chains } from '../../Chains';
 import DAppIcon from '../../DAppIcon';
 import { useCategoryDapps } from '../../hooks';
-import { DAppItemType } from '../../type';
 import { DiscoverContext } from '../context';
 
 import { DAppCategories } from './DAppCategories';
 import { EmptySkeletonContent } from './EmptySkeleton';
+
+import type { DAppItemType } from '../../type';
+import type { ListRenderItem } from 'react-native';
 
 type ChainsSelectorValues = {
   selectedNetworkId: string;
@@ -111,6 +113,8 @@ const ChainsSelector: FC<{ networkIds: string[] }> = ({ networkIds }) => {
 type DappsContainerProps = {
   dapps: DAppItemType[];
 };
+
+const ListEmptyComponent = () => <EmptySkeletonContent offset={-120} />;
 
 const DappsContainer: FC<DappsContainerProps> = ({ dapps }) => {
   const { selectedNetworkId } = useContext(SelectedNetworkContext);
@@ -195,7 +199,7 @@ const DappsContainer: FC<DappsContainerProps> = ({ dapps }) => {
       numColumns={numColumns}
       key={`key${numColumns}`}
       keyExtractor={(item) => item._id}
-      ListEmptyComponent={() => <EmptySkeletonContent offset={-120} />}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };
@@ -238,10 +242,13 @@ export const Others = () => {
     setSelectedNetworkId('');
   }, [categoryId]);
 
+  const contextValue = useMemo(
+    () => ({ selectedNetworkId, setSelectedNetworkId }),
+    [selectedNetworkId],
+  );
+
   return (
-    <SelectedNetworkContext.Provider
-      value={{ selectedNetworkId, setSelectedNetworkId }}
-    >
+    <SelectedNetworkContext.Provider value={contextValue}>
       <Container />
     </SelectedNetworkContext.Provider>
   );

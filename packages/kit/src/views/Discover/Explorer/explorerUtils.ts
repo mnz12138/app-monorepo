@@ -1,13 +1,12 @@
-import { IElectronWebView } from '@onekeyfe/cross-inpage-provider-types';
-import { IWebViewWrapperRef } from '@onekeyfe/onekey-cross-webview';
-import { WebView } from 'react-native-webview';
+import type { ReactNode } from 'react';
 
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
-import { DAppItemType } from '../type';
-
-import type { WebSiteHistory } from '../type';
+import type { DAppItemType, WebSiteHistory } from '../type';
+import type { IElectronWebView } from '@onekeyfe/cross-inpage-provider-types';
+import type { IWebViewWrapperRef } from '@onekeyfe/onekey-cross-webview';
+import type { WebView } from 'react-native-webview';
 
 export interface WebSiteType {
   url?: string;
@@ -41,7 +40,7 @@ export interface WebControllerBarProps {
   onStopLoading?: () => void;
   showExplorerBar?: boolean;
   onMore?: (value: boolean) => void;
-  moreView?: React.ReactNode;
+  moreView?: ReactNode;
 }
 
 export type SearchViewKeyEventType = 'ArrowUp' | 'ArrowDown' | 'Enter';

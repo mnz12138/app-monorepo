@@ -1,18 +1,16 @@
 /* eslint no-unused-vars: ["warn", { "argsIgnorePattern": "^_" }] */
 /* eslint @typescript-eslint/no-unused-vars: ["warn", { "argsIgnorePattern": "^_" }] */
 import { defaultAbiCoder } from '@ethersproject/abi';
-import { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
 import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 import BigNumber from 'bignumber.js';
 import memoizee from 'memoizee';
 import TronWeb from 'tronweb';
 
 import { getTimeDurationMs } from '@onekeyhq/kit/src/utils/helper';
+import { toBigIntHex } from '@onekeyhq/shared/src/engine/engineUtils';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { toBigIntHex } from '../../../engineUtils';
 import {
   InsufficientBalance,
   InvalidAddress,
@@ -43,7 +41,7 @@ import type {
   IFeeInfo,
   IFeeInfoUnit,
   IHistoryTx,
-  ISignedTx,
+  ISignedTxPro,
   ITransferInfo,
   IUnsignedTxPro,
 } from '../../types';
@@ -53,6 +51,8 @@ import type {
   IOnChainHistoryTx,
   IRPCCallResponse,
 } from './types';
+import type { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 const FAKE_OWNER_ADDRESS = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb';
 const SIGNATURE_LENGTH = 65;
@@ -570,7 +570,9 @@ export default class Vault extends VaultBase {
     };
   }
 
-  override async broadcastTransaction(signedTx: ISignedTx): Promise<ISignedTx> {
+  override async broadcastTransaction(
+    signedTx: ISignedTxPro,
+  ): Promise<ISignedTxPro> {
     debugLogger.engine.info('broadcastTransaction START:', {
       rawTx: signedTx.rawTx,
     });

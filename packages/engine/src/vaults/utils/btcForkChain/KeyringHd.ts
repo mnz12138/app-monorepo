@@ -1,26 +1,30 @@
 import { batchGetPublicKeys } from '@onekeyfe/blockchain-libs/dist/secret';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import bs58check from 'bs58check';
 
+import {
+  COINTYPE_BCH,
+  COINTYPE_DOGE,
+} from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_BCH, COINTYPE_DOGE } from '../../../constants';
-import { ExportedSeedCredential } from '../../../dbs/base';
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBUTXOAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHdBase } from '../../keyring/KeyringHdBase';
-import {
-  IPrepareSoftwareAccountsParams,
-  ISignCredentialOptions,
-} from '../../types';
 
 import { getAccountDefaultByPurpose } from './utils';
 
+import type { ExportedSeedCredential } from '../../../dbs/base';
+import type { DBUTXOAccount } from '../../../types/account';
+import type {
+  IPrepareSoftwareAccountsParams,
+  ISignCredentialOptions,
+} from '../../types';
 import type BTCForkVault from './VaultBtcFork';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 export class KeyringHd extends KeyringHdBase {
   override async signTransaction(

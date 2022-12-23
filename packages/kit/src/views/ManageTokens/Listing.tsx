@@ -1,8 +1,8 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
-import { ListRenderItem } from 'react-native';
 
 import {
   Box,
@@ -19,7 +19,7 @@ import {
   Typography,
   useToast,
 } from '@onekeyhq/components';
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
@@ -35,14 +35,16 @@ import {
 } from '../../hooks';
 import { deviceUtils } from '../../utils/hardware';
 import { showOverlay } from '../../utils/overlayUtils';
-import { getTokenValues } from '../../utils/priceUtils';
+import { getTokenValue } from '../../utils/priceUtils';
 import { showHomeBalanceSettings } from '../Overlay/AccountValueSettings';
 
 import { notifyIfRiskToken } from './helpers/TokenSecurityModalWrapper';
 import { useSearchTokens } from './hooks';
-import { ManageTokenRoutes, ManageTokenRoutesParams } from './types';
+import { ManageTokenRoutes } from './types';
 
+import type { ManageTokenRoutesParams } from './types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { ListRenderItem } from 'react-native';
 
 type NavigationProps = NativeStackNavigationProp<
   ManageTokenRoutesParams,
@@ -290,24 +292,17 @@ const ListRenderToken: FC<ListRenderTokenProps> = ({ item }) => {
       activeNetworkId: networkId,
     });
     if (hideSmallBalance) {
-      const [balances, prices] = await Promise.all([
-        backgroundApiProxy.serviceToken.fetchTokenBalance({
-          activeAccountId: accountId,
-          activeNetworkId: networkId,
-          tokenIds: [item.tokenIdOnNetwork],
-        }),
-        backgroundApiProxy.serviceToken.fetchPrices({
-          activeAccountId: accountId,
-          activeNetworkId: networkId,
-          tokenIds: [item.tokenIdOnNetwork],
-        }),
-      ]);
-      const [value] = getTokenValues({
-        balances,
-        prices,
-        tokens: [item],
+      const balances = await backgroundApiProxy.serviceToken.fetchTokenBalance({
+        activeAccountId: accountId,
+        activeNetworkId: networkId,
+        tokenIds: [item.tokenIdOnNetwork],
       });
-      if (value.isLessThan(1)) {
+      const price = await backgroundApiProxy.servicePrice.getSimpleTokenPrice({
+        networkId,
+        tokenId: item.tokenIdOnNetwork,
+      });
+      const value = getTokenValue({ token: item, price, balances });
+      if (value && value.isLessThan(1)) {
         toast.show(
           {
             title: intl.formatMessage({
@@ -470,42 +465,40 @@ export const ListingModal: FC<ListingModalProps> = ({
   );
 
   return (
-    <>
-      <Modal
-        header={intl.formatMessage({
-          id: 'title__manage_tokens',
-          defaultMessage: 'Manage Tokens',
-        })}
-        height="560px"
-        headerDescription={activeNetwork?.shortName}
-        hidePrimaryAction
-        onSecondaryActionPress={() => {
-          navigation.navigate(ManageTokenRoutes.CustomToken);
-        }}
-        secondaryActionProps={{ type: 'basic', leftIconName: 'PlusOutline' }}
-        secondaryActionTranslationId="action__add_custom_tokens"
-        flatListProps={{
-          data: listItems,
-          // @ts-ignore
-          renderItem,
-          keyExtractor: (item) => (item as Token).tokenIdOnNetwork,
-          showsVerticalScrollIndicator: false,
-          ListEmptyComponent: (
-            <ListEmptyComponent isLoading={loading} terms={terms} />
-          ),
-          ListHeaderComponent: (
-            <Header
-              showTopsLabel={networkTokens.length > 0}
-              tokens={headerTokens}
-              keyword={keyword}
-              onChange={setKeyword}
-              onDelete={onRemoveAccountToken}
-            />
-          ),
-          mx: '-8px',
-        }}
-      />
-    </>
+    <Modal
+      header={intl.formatMessage({
+        id: 'title__manage_tokens',
+        defaultMessage: 'Manage Tokens',
+      })}
+      height="560px"
+      headerDescription={activeNetwork?.shortName}
+      hidePrimaryAction
+      onSecondaryActionPress={() => {
+        navigation.navigate(ManageTokenRoutes.CustomToken);
+      }}
+      secondaryActionProps={{ type: 'basic', leftIconName: 'PlusOutline' }}
+      secondaryActionTranslationId="action__add_custom_tokens"
+      flatListProps={{
+        data: listItems,
+        // @ts-ignore
+        renderItem,
+        keyExtractor: (item) => (item as Token).tokenIdOnNetwork,
+        showsVerticalScrollIndicator: false,
+        ListEmptyComponent: (
+          <ListEmptyComponent isLoading={loading} terms={terms} />
+        ),
+        ListHeaderComponent: (
+          <Header
+            showTopsLabel={networkTokens.length > 0}
+            tokens={headerTokens}
+            keyword={keyword}
+            onChange={setKeyword}
+            onDelete={onRemoveAccountToken}
+          />
+        ),
+        mx: '-8px',
+      }}
+    />
   );
 };
 
@@ -567,13 +560,11 @@ export const Listing: FC = () => {
         activeAccountId: accountId,
         activeNetworkId: networkId,
         withBalance: true,
-        withPrice: true,
       });
       backgroundApiProxy.serviceToken.fetchTokens({
         activeAccountId: accountId,
         activeNetworkId: networkId,
         withBalance: true,
-        withPrice: true,
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),

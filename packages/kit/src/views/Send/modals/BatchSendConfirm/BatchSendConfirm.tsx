@@ -4,7 +4,10 @@ import { isEmpty, map } from 'lodash';
 import { useIntl } from 'react-intl';
 
 import { GroupingList, ListItem } from '@onekeyhq/components';
-import { IDecodedTx, ISignedTx } from '@onekeyhq/engine/src/vaults/types';
+import type {
+  IDecodedTx,
+  ISignedTxPro,
+} from '@onekeyhq/engine/src/vaults/types';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
 import { useWalletConnectPrepareConnection } from '../../../../components/WalletConnect/useWalletConnectPrepareConnection';
@@ -15,23 +18,24 @@ import { ModalRoutes, RootRoutes } from '../../../../routes/types';
 import { BatchTxsItemView } from '../../../TxDetail/BatchTxsItemView';
 import { BatchSendConfirmModalBase } from '../../components/BatchSendConfirmModalBase';
 import { BatchTransactionFeeInfo } from '../../components/BatchTransactionFeeInfo';
-import {
-  BatchSendProgressParams,
-  IBatchTxsConfirmViewProps,
-  IBatchTxsConfirmViewPropsHandleConfirm,
-  SendFeedbackReceiptParams,
-  SendRoutes,
-} from '../../types';
+import { SendRoutes } from '../../types';
 import { useBatchSendConfirmDecodedTxs } from '../../utils/useBatchSendConfirmDecodedTxs';
 import { useBatchSendConfirmEncodedTxs } from '../../utils/useBatchSendConfirmEncodedTxs';
 import {
   FEE_INFO_POLLING_INTERVAL,
   useBatchSendConfirmFeeInfoPayload,
 } from '../../utils/useBatchSendConfirmFeeInfoPayload';
-import { useBatchSendConfirmRouteParamsParsed } from '../../utils/useBatchSendConfirmRouteParamsParsed';
 import { useReloadAccountBalance } from '../../utils/useReloadAccountBalance';
 
 import { BatchSendConfirmLoading } from './BatchSendConfirmLoading';
+
+import type {
+  BatchSendProgressParams,
+  IBatchTxsConfirmViewProps,
+  IBatchTxsConfirmViewPropsHandleConfirm,
+  SendFeedbackReceiptParams,
+} from '../../types';
+import type { useBatchSendConfirmRouteParamsParsed } from '../../utils/useBatchSendConfirmRouteParamsParsed';
 
 interface Props {
   batchSendConfirmParamsParsed: ReturnType<
@@ -131,14 +135,13 @@ function BatchSendConfirm({ batchSendConfirmParamsParsed }: Props) {
       };
 
       const onSuccess: BatchSendProgressParams['onSuccess'] = async (
-        txs: ISignedTx[],
+        txs: ISignedTxPro[],
         data,
       ) => {
         serviceToken.fetchAccountTokens({
           activeAccountId: accountId,
           activeNetworkId: networkId,
           withBalance: true,
-          withPrice: false,
         });
 
         if (routeParams.signOnly) {

@@ -1,8 +1,8 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import type { FC } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 
 import { Image } from 'native-base';
 import { useIntl } from 'react-intl';
-import { ListRenderItem } from 'react-native';
 
 import {
   Box,
@@ -19,9 +19,10 @@ import { gotoScanQrcode } from '@onekeyhq/kit/src/utils/gotoScanQrcode';
 
 import { useActiveWalletAccount, useAppSelector } from '../../../hooks';
 import { wait } from '../../../utils/helper';
-import { ConnectedSitesHeaderProps } from '../types';
 
+import type { ConnectedSitesHeaderProps } from '../types';
 import type { IWalletConnectSession } from '@walletconnect/types';
+import type { ListRenderItem } from 'react-native';
 
 const ConnectedSitesHeader: FC<ConnectedSitesHeaderProps> = ({
   connections,
@@ -60,11 +61,13 @@ const ConnectedSitesHeader: FC<ConnectedSitesHeaderProps> = ({
             bgColor="surface-default"
             borderTopRadius={index === 0 ? '12px' : '0px'}
             borderRadius={
+              // eslint-disable-next-line no-unsafe-optional-chaining
               index === walletConnectSessions?.length - 1 ? '12px' : '0px'
             }
             borderWidth={1}
             borderTopWidth={index === 0 ? 1 : 0}
             borderBottomWidth={
+              // eslint-disable-next-line no-unsafe-optional-chaining
               index === walletConnectSessions?.length - 1 ? 1 : 0
             }
             borderColor="border-subdued"
@@ -80,7 +83,9 @@ const ConnectedSitesHeader: FC<ConnectedSitesHeaderProps> = ({
                 />
               </Box>
               <Box ml="3" flex={1}>
-                <Typography.Body2Strong>{dappName}</Typography.Body2Strong>
+                <Typography.Body2Strong noOfLines={2}>
+                  {dappName}
+                </Typography.Body2Strong>
                 <Typography.Body2 color="text-subdued">
                   {`${shortenAddress(item.accounts[0] ?? '')}· EVM`}
                 </Typography.Body2>
@@ -209,4 +214,4 @@ const ConnectedSitesHeader: FC<ConnectedSitesHeaderProps> = ({
   );
 };
 
-export default React.memo(ConnectedSitesHeader);
+export default memo(ConnectedSitesHeader);

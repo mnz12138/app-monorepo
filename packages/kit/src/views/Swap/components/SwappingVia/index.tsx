@@ -1,8 +1,8 @@
-import React, { ComponentProps, FC } from 'react';
+import type { ComponentProps, FC } from 'react';
 
-import { Box, Image, Text } from '@onekeyhq/components';
+import { Box, Center, Image, Text } from '@onekeyhq/components';
 
-import { Provider } from '../../typings';
+import type { Provider } from '../../typings';
 
 type SwappingViaProps = {
   providers?: Provider[];
@@ -10,6 +10,10 @@ type SwappingViaProps = {
   color?: ComponentProps<typeof Text>['color'];
   fontWeight?: ComponentProps<typeof Text>['fontWeight'];
 };
+
+function proxyimg(base: string) {
+  return `https://node.onekey.so/proxyimg?base=${base}`;
+}
 
 type SwappingViaLogosProps = { sources?: string[]; size?: number };
 export const SwappingViaLogos: FC<SwappingViaLogosProps> = ({
@@ -28,8 +32,13 @@ export const SwappingViaLogos: FC<SwappingViaLogosProps> = ({
         h={imageSize}
         overflow="hidden"
         key={sources[0]}
+        bgColor="surface-neutral-default"
       >
-        <Image size={imageSize} src={sources[0]} testID={sources[0]} />
+        <Image
+          size={imageSize}
+          src={proxyimg(sources[0])}
+          testID={sources[0]}
+        />
       </Box>
     );
   }
@@ -37,21 +46,22 @@ export const SwappingViaLogos: FC<SwappingViaLogosProps> = ({
     if (index <= 0) {
       return 0;
     }
-    return -(index * base) / 2;
+    return -base / 2;
   };
   return (
     <Box flexDirection="row" alignItems="center">
       {sources.map((source, index) => (
-        <Box
-          ml={calcMargin(index, imageSize / 4)}
+        <Center
+          ml={calcMargin(index, imageSize)}
           borderRadius="full"
           h={imageSize}
           w={imageSize}
           overflow="hidden"
           key={source}
+          bgColor="surface-neutral-default"
         >
-          <Image size={imageSize} src={source} />
-        </Box>
+          <Image size={imageSize} src={proxyimg(source)} />
+        </Center>
       ))}
     </Box>
   );
@@ -65,7 +75,7 @@ const SwappingVia: FC<SwappingViaProps> = ({
 }) => {
   if (!providers) {
     return (
-      <Text typography={typography} color={color}>
+      <Text typography={typography} color={color} isTruncated>
         OneKey Swap
       </Text>
     );
@@ -81,6 +91,7 @@ const SwappingVia: FC<SwappingViaProps> = ({
           typography={typography}
           color={color}
           fontWeight={fontWeight}
+          isTruncated
         >
           {providers[0].name}
         </Text>
@@ -93,10 +104,11 @@ const SwappingVia: FC<SwappingViaProps> = ({
       <Box alignItems="center" flexDirection="row" alignContent="center">
         {sources.length > 0 ? <SwappingViaLogos sources={sources} /> : null}
         <Text
-          ml={2}
+          ml="2"
           typography={typography}
           color={color}
           fontWeight={fontWeight}
+          isTruncated
         >
           {providers.length} Exchanges
         </Text>

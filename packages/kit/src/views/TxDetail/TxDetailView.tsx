@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useIntl } from 'react-intl';
 
 import { Alert, Box } from '@onekeyhq/components';
@@ -9,7 +7,8 @@ import { TxInteractInfo } from './components/TxInteractInfo';
 import { getReplacedTxAlertTextKeys } from './elements/TxActionElementReplacedTxText';
 import { TxActionsListView } from './TxActionsListView';
 import { TxDetailContextProvider } from './TxDetailContext';
-import { ITxActionListViewProps } from './types';
+
+import type { ITxActionListViewProps } from './types';
 
 export function TxDetailView(props: ITxActionListViewProps) {
   const {

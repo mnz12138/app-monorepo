@@ -1,4 +1,5 @@
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { MotiView } from 'moti';
@@ -9,11 +10,12 @@ import {
   HStack,
   IconButton,
   Modal,
+  Text,
   Token,
   useIsVerticalLayout,
   useToast,
 } from '@onekeyhq/components';
-import { Network } from '@onekeyhq/engine/src/types/network';
+import type { Network } from '@onekeyhq/engine/src/types/network';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import { useManageNetworks } from '../../../hooks';
@@ -36,7 +38,7 @@ const ItemRow: FC<ItemRowProps> = ({
   onDrag,
   onFixTop,
 }) => (
-  <MotiView from={{ scale: 1 }} animate={{ scale: isActive ? 1.05 : 1 }}>
+  <MotiView from={{ scale: 1 }} animate={{ scale: isActive ? 0.8 : 1 }}>
     <Box
       flexDirection="row"
       justifyContent="space-between"
@@ -45,20 +47,21 @@ const ItemRow: FC<ItemRowProps> = ({
     >
       <Token
         size={8}
-        flex={1}
         token={{
           logoURI: network.logoURI,
-          name: network.name,
           symbol: network.name,
         }}
         showInfo
         showDescription={false}
-        infoBoxProps={{ flex: 1 }}
       />
+      <Text typography="Body1Strong" flex={1}>
+        {network.name}
+      </Text>
       <HStack alignItems="center" space={2}>
         {index > 0 ? (
           <IconButton
             type="plain"
+            size="sm"
             circle
             name="ArrowUpTopMini"
             onPress={onFixTop}
@@ -66,6 +69,7 @@ const ItemRow: FC<ItemRowProps> = ({
         ) : null}
         <IconButton
           type="plain"
+          size="sm"
           circle
           name="Bars3Mini"
           onPressIn={() => onDrag()}

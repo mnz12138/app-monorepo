@@ -1,4 +1,5 @@
-import React, {
+import type { FC } from 'react';
+import {
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -6,29 +7,27 @@ import React, {
   useRef,
 } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
 
 import { Box, Icon, Select, useIsVerticalLayout } from '@onekeyhq/components';
-import { Token } from '@onekeyhq/engine/src/types/token';
-import { MAX_PAGE_CONTAINER_WIDTH } from '@onekeyhq/kit/src/config';
+import type { Token } from '@onekeyhq/engine/src/types/token';
+import { MAX_PAGE_CONTAINER_WIDTH } from '@onekeyhq/shared/src/config/appConfig';
 
-import { useActiveWalletAccount, useManageTokens } from '../../hooks';
+import { useActiveWalletAccount } from '../../hooks';
+import { useSimpleTokenPriceValue } from '../../hooks/useManegeTokenPrice';
 import { useTokenInfo } from '../../hooks/useTokenInfo';
-import {
-  HomeRoutes,
-  HomeRoutesParams,
-  ModalRoutes,
-  RootRoutes,
-} from '../../routes/types';
+import { ModalRoutes, RootRoutes } from '../../routes/types';
 import { ManageTokenRoutes } from '../ManageTokens/types';
 import PriceChart from '../PriceChart/PriceChart';
 import StakedAssets from '../Staking/components/StakedAssets';
 import { TxHistoryListView } from '../TxHistory/TxHistoryListView';
 
-import { TokenDetailRoutesParams } from './routes';
 import TokenInfo from './TokenInfo';
 
+import type { HomeRoutes, HomeRoutesParams } from '../../routes/types';
+import type { TokenDetailRoutesParams } from './routes';
+import type { RouteProp } from '@react-navigation/core';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 export type TokenDetailViewProps = NativeStackScreenProps<
@@ -38,25 +37,28 @@ export type TokenDetailViewProps = NativeStackScreenProps<
 
 type RouteProps = RouteProp<HomeRoutesParams, HomeRoutes.ScreenTokenDetail>;
 
-const TokenDetail: React.FC<TokenDetailViewProps> = () => {
+const TokenDetail: FC<TokenDetailViewProps> = () => {
   const intl = useIntl();
   const firstUpdate = useRef(true);
   const navigation = useNavigation();
   const route = useRoute<RouteProps>();
   const isVertical = useIsVerticalLayout();
-  const { charts, prices } = useManageTokens();
+  // const { charts } = useManageTokens();
   const { accountId, networkId, tokenId } = route.params;
+  const price = useSimpleTokenPriceValue({
+    networkId,
+    contractAdress: tokenId,
+  });
   const token = useTokenInfo({ networkId, tokenIdOnNetwork: tokenId });
   const { account: activeAccount, network: activeNetwork } =
     useActiveWalletAccount();
 
   const priceReady = useMemo(() => {
-    const id = tokenId || 'main';
     if (!token) {
       return false;
     }
-    return !!(charts?.[id] && prices?.[id]);
-  }, [charts, prices, tokenId, token]);
+    return !!price;
+  }, [price, token]);
 
   useLayoutEffect(() => {
     if (firstUpdate.current) {

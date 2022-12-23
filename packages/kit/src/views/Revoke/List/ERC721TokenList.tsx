@@ -1,4 +1,5 @@
-import React, { FC, useCallback } from 'react';
+import type { FC } from 'react';
+import { useCallback } from 'react';
 
 import { useIntl } from 'react-intl';
 
@@ -10,12 +11,11 @@ import {
   Typography,
   VStack,
 } from '@onekeyhq/components';
-import { ERC721TokenAllowance } from '@onekeyhq/engine/src/managers/revoke';
+import type { ERC721TokenAllowance } from '@onekeyhq/engine/src/managers/revoke';
 
 import { useIsVerticalOrMiddleLayout } from '../hooks';
-import { AssetType } from '../types';
 
-import { EmptyRecord, Header, ListLoading } from './ERC20TokenList';
+import { EmptyRecord, ListLoading, NftsHeader } from './ERC20TokenList';
 import { ERC721Allowance } from './ERC721Allowance';
 
 export const ERC721TokenList: FC<{
@@ -153,9 +153,7 @@ export const ERC721TokenList: FC<{
     <List
       data={loading ? [] : data}
       showDivider
-      ListHeaderComponent={
-        isVertical ? undefined : () => <Header assetType={AssetType.nfts} />
-      }
+      ListHeaderComponent={isVertical ? undefined : NftsHeader}
       renderItem={isVertical ? renderListItemMobile : renderListItemDesktop}
       keyExtractor={({ token }) => token.id || token.tokenIdOnNetwork}
       ListEmptyComponent={loading ? <ListLoading /> : <EmptyRecord />}

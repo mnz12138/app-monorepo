@@ -3,12 +3,15 @@
 
 import { ed25519 } from '@onekeyfe/blockchain-libs/dist/secret/curves';
 
-import { COINTYPE_STC as COIN_TYPE } from '../../../constants';
+import { COINTYPE_STC as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
+
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringImportedBase } from '../../keyring/KeyringImportedBase';
-import { IPrepareImportedAccountsParams } from '../../types';
+
+import type { DBSimpleAccount } from '../../../types/account';
+import type { IPrepareImportedAccountsParams } from '../../types';
 
 export class KeyringImported extends KeyringImportedBase {
   override async getSigners(

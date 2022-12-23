@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
 
-import { IMPL_EVM } from '@onekeyhq/engine/src/constants';
+import { IMPL_EVM } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
-import { IConnectToWalletResult } from '../../components/WalletConnect/useWalletConnectQrcodeModal';
+
+import type { IConnectToWalletResult } from '../../components/WalletConnect/useWalletConnectQrcodeModal';
 
 export function useAddExternalAccount() {
   const { serviceAccount, serviceExternalAccount } = backgroundApiProxy;

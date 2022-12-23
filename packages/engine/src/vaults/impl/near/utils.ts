@@ -1,37 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import * as transactions from '@onekeyfe/blockchain-libs/dist/provider/chains/near/sdk/transaction';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import BN from 'bn.js';
 import { baseDecode, baseEncode } from 'borsh';
 import bs58 from 'bs58';
 import sha256 from 'js-sha256';
 import { isString } from 'lodash';
 import * as nearApiJs from 'near-api-js';
+import { SignedTransaction } from 'near-api-js/lib/transaction';
 
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { Signer } from '../../../proxy';
 import { TxStatus } from '../../../types/covalent';
-import {
+import { IDecodedTxActionType } from '../../types';
+import { EVMDecodedTxType } from '../evm/decoder/types';
+
+import type { Signer } from '../../../proxy';
+import type {
   IDecodedTx,
   IDecodedTxAction,
-  IDecodedTxActionType,
   IDecodedTxLegacy,
+  ISignedTxPro,
+  IUnsignedTxPro,
 } from '../../types';
-import {
-  EVMDecodedItemERC20Transfer,
-  EVMDecodedTxType,
-} from '../evm/decoder/types';
-
-import type { Engine } from '../../../index';
-import type {
-  Action,
-  SignedTransaction,
-  Transaction,
-} from 'near-api-js/lib/transaction';
+import type { EVMDecodedItemERC20Transfer } from '../evm/decoder/types';
+import type { Action, Transaction } from 'near-api-js/lib/transaction';
 
 const { parseNearAmount } = nearApiJs.utils.format;
 
@@ -61,6 +53,17 @@ const deserializeTransactionsFromString = (transactionsString) => transactionsSt
     nearApiJs.transactions.Transaction,
     buffer,
   );
+  return tx;
+}
+
+export function deserializeSignedTransaction(txStr: string): SignedTransaction {
+  /*
+const deserializeTransactionsFromString = (transactionsString) => transactionsString.split(',')
+  .map(str => Buffer.from(str, 'base64'))
+  .map(buffer => utils.serialize.deserialize(transaction.SCHEMA, transaction.Transaction, buffer));
+*/
+  const buffer = Buffer.from(txStr, 'base64');
+  const tx = SignedTransaction.decode(buffer);
   return tx;
 }
 
@@ -202,15 +205,16 @@ export function decodedTxToLegacy(tx: IDecodedTx): IDecodedTxLegacy {
 }
 
 export async function signTransaction(
-  unsignedTx: UnsignedTx,
+  unsignedTx: IUnsignedTxPro,
   signer: Signer,
-): Promise<SignedTx> {
+): Promise<ISignedTxPro> {
   const transaction = unsignedTx.payload
     .nativeTx as nearApiJs.transactions.Transaction;
   const txHash: string = serializeTransaction(transaction, {
     encoding: 'sha256_bs58',
   });
-  const res = await signer.sign(baseDecode(txHash));
+  const digest = baseDecode(txHash);
+  const res = await signer.sign(digest);
   const signature = new Uint8Array(res[0]);
 
   const signedTx = new nearApiJs.transactions.SignedTransaction({
@@ -229,8 +233,14 @@ export async function signTransaction(
     txHash,
   });
 
+  const publicKey = await signer.getPubkey(true);
+
   return {
     txid: txHash,
     rawTx,
+    digest: Buffer.from(digest).toString('hex'),
+    signature: Buffer.from(signature).toString('hex'),
+    publicKey: Buffer.from(publicKey).toString('hex'),
+    encodedTx: unsignedTx.encodedTx,
   };
 }

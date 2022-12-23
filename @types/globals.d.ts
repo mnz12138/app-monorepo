@@ -1,6 +1,6 @@
 /* eslint-disable no-var,vars-on-top */
 import type { LocaleIds } from '@onekeyhq/components/src/locale';
-import type { IBackgroundApi } from '@onekeyhq/kit/src/background/IBackgroundApi';
+import type { IBackgroundApi } from '@onekeyhq/kit-bg/src/IBackgroundApi';
 
 import type { JsBridgeBase } from '@onekeyfe/cross-inpage-provider-core';
 import type { ProviderPrivate } from '@onekeyfe/onekey-private-provider';
@@ -18,7 +18,7 @@ declare global {
 
   var $onekey: IWindowOneKeyHub;
   var $backgroundApiProxy: IBackgroundApi;
-  var $backgroundApi: any;
+  var $backgroundApi: IBackgroundApi;
 
   var $$simpleDb: any;
   var $$appEventBus: any;
@@ -32,6 +32,17 @@ declare global {
   var $$localforage: any;
   var $$navigationActions: any;
   var $$wcTransports: any;
+  var $$onekeyPerfTrace:
+    | {
+        log: (options: { name: string }) => void;
+        timeline: Array<{
+          time: string;
+          elapsed: number;
+          lag: number;
+          name: string;
+        }>;
+      }
+    | undefined;
 
   var chrome: typeof chrome; // chrome api
   var browser: typeof chrome; // firefox api

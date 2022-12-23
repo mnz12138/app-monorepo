@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
-import { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import {
-  PartialTokenInfo,
-  TransactionStatus,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { getTimeStamp } from '@onekeyfe/hd-core';
+import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import BigNumber from 'bignumber.js';
 import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import { get } from 'lodash';
@@ -20,34 +15,20 @@ import {
   OneKeyInternalError,
 } from '@onekeyhq/engine/src/errors';
 import { parseNetworkId } from '@onekeyhq/engine/src/managers/network';
-import {
+import type {
   DBSimpleAccount,
   DBVariantAccount,
 } from '@onekeyhq/engine/src/types/account';
-import { Token } from '@onekeyhq/engine/src/types/token';
+import type { Token } from '@onekeyhq/engine/src/types/token';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
+import { CoreSDKLoader } from '@onekeyhq/shared/src/device/hardwareInstance';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { OnekeyNetwork } from '../../../presets/networkIds';
-import { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
 import {
-  IApproveInfo,
-  IDecodedTx,
-  IDecodedTxAction,
-  IDecodedTxActionTokenTransfer,
   IDecodedTxActionType,
   IDecodedTxDirection,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IEncodedTxUpdateOptions,
-  IEncodedTxUpdatePayloadTransfer,
   IEncodedTxUpdateType,
-  IFeeInfo,
-  IFeeInfoUnit,
-  IHistoryTx,
-  ISignedTx,
-  ITransferInfo,
-  IUnsignedTxPro,
 } from '../../types';
 import {
   convertFeeGweiToValue,
@@ -61,7 +42,11 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import { CosmosNodeClient } from './NodeClient';
-import { isValidAddress, isValidContractAddress } from './sdk/address';
+import {
+  baseAddressToAddress,
+  isValidAddress,
+  isValidContractAddress,
+} from './sdk/address';
 import { MessageType } from './sdk/message';
 import { queryRegistry } from './sdk/query/IQuery';
 import {
@@ -80,7 +65,26 @@ import {
 import settings from './settings';
 import { getTransactionTypeByProtoMessage } from './utils';
 
+import type { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import type {
+  IApproveInfo,
+  IDecodedTx,
+  IDecodedTxAction,
+  IDecodedTxActionTokenTransfer,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IEncodedTxUpdateOptions,
+  IEncodedTxUpdatePayloadTransfer,
+  IFeeInfo,
+  IFeeInfoUnit,
+  IHistoryTx,
+  ISignedTxPro,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
 import type { CosmosImplOptions, IEncodedTxCosmos, StdFee } from './type';
+import type { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type { PartialTokenInfo } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import type { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import type { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 
@@ -639,7 +643,9 @@ export default class Vault extends VaultBase {
     };
   }
 
-  override async broadcastTransaction(signedTx: ISignedTx): Promise<ISignedTx> {
+  override async broadcastTransaction(
+    signedTx: ISignedTxPro,
+  ): Promise<ISignedTxPro> {
     const client = await this.getClient();
 
     debugLogger.engine.info('broadcastTransaction START:', {
@@ -718,6 +724,7 @@ export default class Vault extends VaultBase {
       return Promise.resolve([]);
     }
 
+    const { getTimeStamp } = await CoreSDKLoader();
     const dbAccount = (await this.getDbAccount()) as DBSimpleAccount;
     const chainInfo = await this.getChainInfo();
     let token: Token | undefined = await this.engine.getNativeTokenInfo(
@@ -851,6 +858,14 @@ export default class Vault extends VaultBase {
           }
         }
       }),
+    );
+  }
+
+  override async addressFromBase(baseAddress: string) {
+    const chainInfo = await this.getChainInfo();
+    return baseAddressToAddress(
+      chainInfo.implOptions?.addressPrefix ?? 'cosmos',
+      baseAddress,
     );
   }
 }

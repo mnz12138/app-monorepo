@@ -1,4 +1,5 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useIntl } from 'react-intl';
 
@@ -13,7 +14,7 @@ import {
   useToast,
 } from '@onekeyhq/components';
 import { copyToClipboard } from '@onekeyhq/components/src/utils/ClipboardUtils';
-import { Token as TokenType } from '@onekeyhq/engine/src/types/token';
+import type { Token as TokenType } from '@onekeyhq/engine/src/types/token';
 
 import { useActiveWalletAccount } from '../../../hooks';
 import {
@@ -21,12 +22,12 @@ import {
   useSpenderAppName,
   useUpdateAllowance,
 } from '../hooks';
-import showAllowanceDetailOverlay, {
-  ActionKey,
-} from '../Overlays/AllowanceDetail';
+import showAllowanceDetailOverlay from '../Overlays/AllowanceDetail';
 import { AssetType } from '../types';
 
 import { ApproveDialog } from './ERC20Allowance';
+
+import type { ActionKey } from '../Overlays/AllowanceDetail';
 
 type Props = {
   spender: string;

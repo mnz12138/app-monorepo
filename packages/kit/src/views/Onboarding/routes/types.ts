@@ -1,7 +1,7 @@
-import { SearchDevice } from '@onekeyhq/kit/src/utils/hardware';
-import { IOneKeyDeviceFeatures } from '@onekeyhq/shared/types';
+import type { SearchDevice } from '@onekeyhq/kit/src/utils/hardware';
+import type { IOneKeyDeviceFeatures } from '@onekeyhq/shared/types';
 
-import { EOnboardingRoutes } from './enums';
+import type { EOnboardingRoutes } from './enums';
 
 export type IOnboardingRecoveryPhraseParams = {
   password: string;
@@ -21,12 +21,19 @@ export type IOnboardingSetPasswordParams = {
 };
 export type IOnboardingConnectWalletParams = {
   disableAnimation?: boolean;
+  disableOnboardingDone?: boolean;
+  onSuccess?: () => void;
 };
 export type IOnboardingImportWalletParams = {
   disableAnimation?: boolean;
 };
+
+export type IOnboardingWelcomeParams = {
+  disableAnimation?: boolean;
+};
+
 export type IOnboardingRoutesParams = {
-  [EOnboardingRoutes.Welcome]: undefined;
+  [EOnboardingRoutes.Welcome]: IOnboardingWelcomeParams | undefined;
 
   [EOnboardingRoutes.ConnectWallet]: IOnboardingConnectWalletParams | undefined;
   [EOnboardingRoutes.ConnectHardwareModal]: undefined;

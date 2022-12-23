@@ -1,10 +1,11 @@
-import React, { memo, useCallback, useEffect } from 'react';
+import type { FC, ReactElement } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 
 import { requestPermissionsAsync } from 'expo-notifications';
 import { AppState, NativeModules } from 'react-native';
 
 import { DialogManager } from '@onekeyhq/components';
-import { NotificationExtra } from '@onekeyhq/engine/src/managers/notification';
+import type { NotificationExtra } from '@onekeyhq/engine/src/managers/notification';
 import { useSettings } from '@onekeyhq/kit/src/hooks/redux';
 import {
   checkPushNotificationPermission,
@@ -16,8 +17,8 @@ import backgroundApiProxy from '../background/instance/backgroundApiProxy';
 import PermissionDialog from '../components/PermissionDialog/PermissionDialog';
 import { setPushNotificationConfig } from '../store/reducers/settings';
 
-const NotificationProvider: React.FC<{
-  children: React.ReactElement<any, any> | null;
+const NotificationProvider: FC<{
+  children: ReactElement<any, any> | null;
   launchNotification?: NotificationExtra;
 }> = ({ children, launchNotification }) => {
   const { pushNotification } = useSettings();

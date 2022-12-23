@@ -1,6 +1,5 @@
+import BackgroundApiProxy from '@onekeyhq/kit-bg/src/BackgroundApiProxy';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
-
-import BackgroundApiProxy from '../BackgroundApiProxy';
 
 import backgroundApiInit from './backgroundApiInit';
 

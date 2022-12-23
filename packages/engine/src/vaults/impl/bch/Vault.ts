@@ -1,7 +1,5 @@
-import { IBlockBookTransaction } from '@onekeyhq/engine/src/vaults/utils/btcForkChain/types';
 import VaultBtcFork from '@onekeyhq/engine/src/vaults/utils/btcForkChain/VaultBtcFork';
-
-import { COINTYPE_BCH } from '../../../constants';
+import { COINTYPE_BCH } from '@onekeyhq/shared/src/engine/engineConsts';
 
 import { KeyringHardware } from './KeyringHardware';
 import { KeyringHd } from './KeyringHd';
@@ -9,8 +7,6 @@ import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import Provider from './provider';
 import settings from './settings';
-
-import type { ArrayElement } from '../../utils/btcForkChain/types';
 
 export default class Vault extends VaultBtcFork {
   override providerClass = Provider;

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable no-nested-ternary */
-import { FC, ReactNode } from 'react';
+import type { FC, ReactNode } from 'react';
 
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import Box from '../Box';
 import { useIsVerticalLayout } from '../Provider/hooks';
 
 import HeaderBackButton from './HeaderBackButton';
@@ -48,7 +49,7 @@ const NavHeader: FC<HeaderProps> = ({
       pointerEvents="box-none"
       style={{
         height,
-        paddingTop: safeTop ?? insets.top,
+        marginTop: safeTop ?? insets.top,
       }}
     >
       <View
@@ -59,7 +60,11 @@ const NavHeader: FC<HeaderProps> = ({
           pointerEvents="box-none"
           style={[styles.left, { marginStart: insets.left }]}
         >
-          {enableBackButton && <HeaderBackButton />}
+          {enableBackButton && (
+            <Box ml="-6px" mr="8px">
+              <HeaderBackButton />
+            </Box>
+          )}
           {headerLeft?.()}
         </View>
         {titleComponent}
@@ -78,7 +83,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
   },
   left: {
     justifyContent: 'center',

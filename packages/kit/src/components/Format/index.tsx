@@ -1,5 +1,6 @@
 /* eslint-disable no-nested-ternary */
-import React, { FC, useMemo } from 'react';
+import type { FC } from 'react';
+import { useMemo } from 'react';
 
 import BigNumber from 'bignumber.js';
 import { isNil } from 'lodash';
@@ -14,9 +15,11 @@ import {
   useManageTokensOfAccount,
   useSettings,
 } from '../../hooks';
-import { Token } from '../../store/typings';
+import { useSimpleTokenPriceValue } from '../../hooks/useManegeTokenPrice';
 import { getSuggestedDecimals } from '../../utils/priceUtils';
 import { formatDecimalZero, getFiatCodeUnit } from '../../views/Market/utils';
+
+import type { Token } from '../../store/typings';
 
 export type FormatOptions = {
   /** 向左偏移的位数，用于 decimal 的处理 */
@@ -214,19 +217,15 @@ export function FormatCurrencyTokenOfAccount({
   formatOptions = {},
   as,
   render,
-  accountId,
   networkId,
 }: IFormatCurrencyTokenProps & {
   accountId: string;
   networkId: string;
 }) {
-  const { prices } = useManageTokensOfAccount({
-    accountId,
+  const priceValue = useSimpleTokenPriceValue({
     networkId,
+    contractAdress: token?.tokenIdOnNetwork,
   });
-  const priceKey =
-    token && token.tokenIdOnNetwork ? token.tokenIdOnNetwork : 'main';
-  const priceValue = prices?.[priceKey];
   const priceUndefined = priceValue === undefined || priceValue === null;
   return (
     <FormatCurrency

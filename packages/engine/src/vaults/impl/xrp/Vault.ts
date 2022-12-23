@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import BigNumber from 'bignumber.js';
 import memoizee from 'memoizee';
 import * as XRPL from 'xrpl';
@@ -12,24 +11,13 @@ import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 import {
   InvalidAddress,
   InvalidTransferValue,
+  NotImplemented,
   OneKeyInternalError,
 } from '../../../errors';
-import { DBSimpleAccount } from '../../../types/account';
-import { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
 import {
-  IDecodedTx,
   IDecodedTxActionType,
   IDecodedTxDirection,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IEncodedTxUpdateOptions,
-  IFeeInfo,
-  IFeeInfoUnit,
-  IHistoryTx,
-  ISignedTx,
-  ITransferInfo,
-  IUnsignedTxPro,
 } from '../../types';
 import { VaultBase } from '../../VaultBase';
 
@@ -38,10 +26,27 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import settings from './settings';
-import { IEncodedTxXrp, IXrpTransaction } from './types';
 import { getDecodedTxStatus, getTxStatus } from './utils';
 
+import type { DBSimpleAccount } from '../../../types/account';
+import type { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import type {
+  IDecodedTx,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IEncodedTxUpdateOptions,
+  IFeeInfo,
+  IFeeInfoUnit,
+  IHistoryTx,
+  ISignedTxPro,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
+import type { IEncodedTxXrp, IXrpTransaction } from './types';
+import type { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
+
 let clientInstance: XRPL.Client | null = null;
+
 // @ts-ignore
 export default class Vault extends VaultBase {
   keyringMap = {
@@ -113,6 +118,10 @@ export default class Vault extends VaultBase {
       return Promise.resolve(address);
     }
     return Promise.reject(new InvalidAddress());
+  }
+
+  override async validateTokenAddress(address: string): Promise<string> {
+    throw new NotImplemented();
   }
 
   override async validateWatchingCredential(input: string): Promise<boolean> {
@@ -204,13 +213,28 @@ export default class Vault extends VaultBase {
   ): Promise<IEncodedTxXrp> {
     const { to, amount } = transferInfo;
     const dbAccount = (await this.getDbAccount()) as DBSimpleAccount;
+
+    let destination = to;
+    let destinationTag: number | undefined;
+    // Slice destination tag from swap address
+    if (!XRPL.isValidAddress(to) && to.indexOf('#') > -1) {
+      const [address, tag] = to.split('#');
+      destination = address;
+      destinationTag = tag ? Number(tag) : undefined;
+
+      if (!XRPL.isValidAddress(address)) {
+        throw new InvalidAddress();
+      }
+    }
+
     const client = await this.getClient();
     const currentLedgerIndex = await client.getLedgerIndex();
     const prepared = await client.autofill({
       TransactionType: 'Payment',
       Account: dbAccount.address,
       Amount: XRPL.xrpToDrops(amount),
-      Destination: to,
+      Destination: destination,
+      DestinationTag: destinationTag,
       LastLedgerSequence: currentLedgerIndex + 50,
     });
     return {
@@ -240,7 +264,9 @@ export default class Vault extends VaultBase {
     return Promise.resolve(encodedTx);
   }
 
-  override async broadcastTransaction(signedTx: ISignedTx): Promise<ISignedTx> {
+  override async broadcastTransaction(
+    signedTx: ISignedTxPro,
+  ): Promise<ISignedTxPro> {
     debugLogger.engine.info('broadcastTransaction START:', {
       rawTx: signedTx.rawTx,
     });

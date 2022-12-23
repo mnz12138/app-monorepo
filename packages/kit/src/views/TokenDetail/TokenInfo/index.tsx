@@ -1,4 +1,5 @@
-import React, { FC, useMemo } from 'react';
+import type { FC } from 'react';
+import { useMemo } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
@@ -11,13 +12,9 @@ import {
   Typography,
   useIsVerticalLayout,
 } from '@onekeyhq/components';
-import { Token as TokenDO } from '@onekeyhq/engine/src/types/token';
+import type { Token as TokenDO } from '@onekeyhq/engine/src/types/token';
+import { FormatBalance } from '@onekeyhq/kit/src/components/Format';
 import {
-  FormatBalance,
-  FormatCurrencyNumber,
-} from '@onekeyhq/kit/src/components/Format';
-import {
-  getActiveWalletAccount,
   useActiveWalletAccount,
   useFiatPay,
   useMoonpayPayCurrency,
@@ -26,16 +23,20 @@ import { useManageTokens } from '@onekeyhq/kit/src/hooks/useManageTokens';
 import { FiatPayRoutes } from '@onekeyhq/kit/src/routes/Modal/FiatPay';
 import { ReceiveTokenRoutes } from '@onekeyhq/kit/src/routes/Modal/routes';
 import type { ReceiveTokenRoutesParams } from '@onekeyhq/kit/src/routes/Modal/types';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
 import {
   ModalRoutes,
-  ModalScreenProps,
   RootRoutes,
+  TabRoutes,
 } from '@onekeyhq/kit/src/routes/types';
-import { CurrencyType } from '@onekeyhq/kit/src/views/FiatPay/types';
+import type { CurrencyType } from '@onekeyhq/kit/src/views/FiatPay/types';
 import { SendRoutes } from '@onekeyhq/kit/src/views/Send/types';
 
-import { getTokenValues } from '../../../utils/priceUtils';
+import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
+import { SWAP_TAB_NAME } from '../../../store/reducers/market';
 import { ManageTokenRoutes } from '../../ManageTokens/types';
+
+import { PriceCurrencyNumber } from './PriceCurrencyNumber';
 
 type NavigationProps = ModalScreenProps<ReceiveTokenRoutesParams>;
 
@@ -47,7 +48,7 @@ export type TokenInfoProps = {
 const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
   const intl = useIntl();
   const isVertical = useIsVerticalLayout();
-  const { wallet, network } = useActiveWalletAccount();
+  const { wallet, network, networkId, accountId } = useActiveWalletAccount();
   const navigation = useNavigation<NavigationProps['navigation']>();
 
   const currencies = useFiatPay(network?.id ?? '');
@@ -58,7 +59,7 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
     return item.contract === token?.tokenIdOnNetwork;
   });
 
-  const { prices, balances } = useManageTokens();
+  const { balances } = useManageTokens();
 
   const amount = balances[token?.tokenIdOnNetwork || 'main'] ?? '0';
 
@@ -125,8 +126,11 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
             />
           </Box>
           <Typography.Body2 mt={1}>
-            <FormatCurrencyNumber
-              value={getTokenValues({ tokens: [token], prices, balances })[0]}
+            <PriceCurrencyNumber
+              networkId={networkId}
+              token={token}
+              contractAdress={token?.tokenIdOnNetwork}
+              balances={balances}
             />
           </Typography.Body2>
         </Box>
@@ -140,7 +144,7 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
       network?.tokenDisplayDecimals,
       network?.nativeDisplayDecimals,
       amount,
-      prices,
+      networkId,
       balances,
     ],
   );
@@ -156,7 +160,6 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
             type="basic"
             isDisabled={wallet?.type === 'watching'}
             onPress={() => {
-              const { accountId, networkId } = getActiveWalletAccount();
               navigation.navigate(RootRoutes.Modal, {
                 screen: ModalRoutes.Send,
                 params: {
@@ -210,6 +213,38 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
             {intl.formatMessage({ id: 'action__receive' })}
           </Typography.CaptionStrong>
         </Box>
+        <Box flex={{ base: 1, sm: 0 }} mx={3} minW="56px" alignItems="center">
+          <IconButton
+            circle
+            size={isVertical ? 'xl' : 'lg'}
+            name="ArrowsRightLeftOutline"
+            type="basic"
+            isDisabled={wallet?.type === 'watching'}
+            onPress={() => {
+              if (token) {
+                backgroundApiProxy.serviceSwap.setInputToken(token);
+              }
+              if (isVertical) {
+                backgroundApiProxy.serviceMarket.switchMarketTopTab(
+                  SWAP_TAB_NAME,
+                );
+                navigation.getParent()?.navigate(TabRoutes.Market);
+              } else {
+                navigation.getParent()?.navigate(TabRoutes.Swap);
+              }
+            }}
+          />
+          <Typography.CaptionStrong
+            textAlign="center"
+            mt="8px"
+            color={
+              wallet?.type === 'watching' ? 'text-disabled' : 'text-default'
+            }
+          >
+            {intl.formatMessage({ id: 'title__swap' })}
+          </Typography.CaptionStrong>
+        </Box>
+
         {cryptoCurrency && (
           <Box flex={1} mx={3} minW="56px" alignItems="center">
             <IconButton
@@ -305,13 +340,15 @@ const TokenInfo: FC<TokenInfoProps> = ({ token, priceReady }) => {
       </Box>
     ),
     [
-      priceReady,
       isVertical,
       wallet?.type,
       intl,
       cryptoCurrency,
       sellEnable,
+      priceReady,
       navigation,
+      accountId,
+      networkId,
       token,
     ],
   );

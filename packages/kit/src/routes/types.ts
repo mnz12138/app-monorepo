@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable @typescript-eslint/no-namespace */
-import { PriceAlertItem } from '@onekeyhq/engine/src/managers/notification';
-import { Network } from '@onekeyhq/engine/src/types/network';
-import { Collection } from '@onekeyhq/engine/src/types/nft';
+import type { PriceAlertItem } from '@onekeyhq/engine/src/managers/notification';
+import type { Network } from '@onekeyhq/engine/src/types/network';
+import type { Collection } from '@onekeyhq/engine/src/types/nft';
 import type { MatchDAppItemType } from '@onekeyhq/kit/src/views/Discover/Explorer/explorerUtils';
 import type { DAppItemType } from '@onekeyhq/kit/src/views/Discover/type';
 
-import { IOnboardingRoutesParams } from '../views/Onboarding/routes/types';
-
-import * as SubModalRoutesParams from './Modal/types';
 // define enum here to avoid cycle import
 import { HomeRoutes, ModalRoutes, RootRoutes, TabRoutes } from './routesEnum';
 
+import type { IOnboardingRoutesParams } from '../views/Onboarding/routes/types';
 import type { StackBasicRoutesParams } from './Dev';
+import type * as SubModalRoutesParams from './Modal/types';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type {
   CompositeScreenProps,
@@ -57,8 +56,7 @@ export type ModalRoutesParams = {
   [ModalRoutes.PushNotification]: NavigatorScreenParams<SubModalRoutesParams.PushNotificationRoutesParams>;
   [ModalRoutes.Webview]: NavigatorScreenParams<SubModalRoutesParams.WebviewRoutesParams>;
   [ModalRoutes.Revoke]: NavigatorScreenParams<SubModalRoutesParams.RevokeRoutesParams>;
-  [ModalRoutes.SearchNFT]: NavigatorScreenParams<SubModalRoutesParams.SearchNFTCollectionRoutesParams>;
-  [ModalRoutes.NFTAttributeFilter]: NavigatorScreenParams<SubModalRoutesParams.NFTAttributeFilterRoutesParams>;
+  [ModalRoutes.NFTMarket]: NavigatorScreenParams<SubModalRoutesParams.NFTMarketRoutesParams>;
 };
 /** Modal */
 
@@ -94,7 +92,11 @@ export type HomeRoutesParams = {
     networkId?: string;
   };
   [HomeRoutes.DebugScreen]: undefined;
-  [HomeRoutes.SettingsWebviewScreen]: { url: string; title?: string };
+  [HomeRoutes.SettingsWebviewScreen]: {
+    url: string;
+    title?: string;
+    modalMode?: boolean;
+  };
   [HomeRoutes.ScreenOnekeyLiteDetail]: undefined;
   [HomeRoutes.ExploreScreen]: {
     onItemSelect?: (item: DAppItemType) => Promise<boolean>;
@@ -144,6 +146,7 @@ export type HomeRoutesParams = {
     title?: string;
   };
   [HomeRoutes.RevokeRedirect]: undefined;
+  [HomeRoutes.NFTPNLScreen]: { address?: string };
 };
 /** HomeStack */
 

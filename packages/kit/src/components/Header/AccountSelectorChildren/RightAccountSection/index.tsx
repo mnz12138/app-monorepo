@@ -1,4 +1,5 @@
-import React, { FC, memo, useMemo } from 'react';
+import type { FC } from 'react';
+import { memo, useMemo } from 'react';
 
 import { SectionList } from 'react-native';
 
@@ -10,9 +11,11 @@ import { NetworkIcon } from '@onekeyhq/kit/src/views/ManageNetworks/Listing/Netw
 
 import { useAppSelector } from '../../../../hooks';
 
-import AccountSectionItem, { AccountGroup } from './ItemSection';
+import AccountSectionItem from './ItemSection';
 
-export const AccountSectionLoadingSkeleton = React.memo(
+import type { AccountGroup } from './ItemSection';
+
+export const AccountSectionLoadingSkeleton = memo(
   ({ isLoading }: { isLoading: boolean }) =>
     isLoading ? (
       <Box mx="2" borderRadius={12} p="2">
@@ -32,6 +35,8 @@ type AccountSectionProps = {
   refreshAccounts: (walletId: string, networkId: string) => void;
 };
 
+const RightAccountSectionSeparator = () => <Box h={2} />;
+const RightAccountItemSeparator = () => <Box h={2} />;
 const RightAccountSection: FC<AccountSectionProps> = ({
   activeAccounts,
   activeWallet,
@@ -61,12 +66,9 @@ const RightAccountSection: FC<AccountSectionProps> = ({
       testID="AccountSelectorChildren-AccountSection-SectionList"
       stickySectionHeadersEnabled
       sections={activeAccounts}
-      SectionSeparatorComponent={(section) => (
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        <Box h={section?.leadingItem ? 2 : 0} />
-      )}
+      SectionSeparatorComponent={RightAccountSectionSeparator}
       ListFooterComponent={preloadingSkeleton}
-      ItemSeparatorComponent={() => <Box h={2} />}
+      ItemSeparatorComponent={RightAccountItemSeparator}
       keyExtractor={(item, index) => `${item.id}-${index}`}
       renderItem={({ item, section }) =>
         preloadingCreateAccount &&

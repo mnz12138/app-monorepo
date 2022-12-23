@@ -1,10 +1,11 @@
-import React, { FC, useEffect } from 'react';
+import type { FC } from 'react';
+import { useEffect } from 'react';
 
 import { useIntl } from 'react-intl';
 
 import { Dialog, Spinner, ToastManager } from '@onekeyhq/components';
 import { OneKeyErrorClassNames } from '@onekeyhq/engine/src/errors';
-import { Device } from '@onekeyhq/engine/src/types/device';
+import type { Device } from '@onekeyhq/engine/src/types/device';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 
 import { deviceUtils } from '../../../utils/hardware';

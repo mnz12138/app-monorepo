@@ -6,6 +6,7 @@ const notifier = require('node-notifier');
 const { getPathsAsync } = require('@expo/webpack-config/env');
 const path = require('path');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const developmentConsts = require('./developmentConsts');
 const indexHtmlParameter = require('./indexHtmlParameter');
 
@@ -30,21 +31,23 @@ class BuildDoneNotifyPlugin {
   }
 }
 
-const resolveExtensions = [
-  '.web.ts',
-  '.web.tsx',
-  '.web.mjs',
-  '.web.js',
-  '.web.jsx',
-  '.ts',
-  '.tsx',
-  '.mjs',
-  '.js',
-  '.jsx',
-  '.json',
-  '.wasm',
-  '.d.ts',
-];
+function createDefaultResolveExtensions() {
+  return [
+    '.web.ts',
+    '.web.tsx',
+    '.web.mjs',
+    '.web.js',
+    '.web.jsx',
+    '.ts',
+    '.tsx',
+    '.mjs',
+    '.js',
+    '.jsx',
+    '.json',
+    '.wasm',
+    '.d.ts',
+  ];
+}
 
 async function modifyExpoEnv({ env, platform }) {
   const locations = await getPathsAsync(env.projectRoot);
@@ -72,13 +75,22 @@ async function modifyExpoEnv({ env, platform }) {
   return newEnv;
 }
 
-function normalizeConfig({ platform, config, env }) {
+function normalizeConfig({
+  platform,
+  config,
+  env,
+  configName,
+  enableAnalyzerHtmlReport,
+  buildTargetBrowser, // firefox or chrome, for extension build
+}) {
+  let resolveExtensions = createDefaultResolveExtensions();
   if (platform) {
     if (PUBLIC_URL) config.output.publicPath = PUBLIC_URL;
     const isDev = process.env.NODE_ENV !== 'production';
 
     config.plugins = [
       ...config.plugins,
+      new DuplicatePackageCheckerPlugin(),
       isDev ? new BuildDoneNotifyPlugin() : null,
       new webpack.DefinePlugin({
         // TODO use babelTools `transform-inline-environment-variables` instead
@@ -88,18 +100,59 @@ function normalizeConfig({ platform, config, env }) {
         ),
         'process.env.PUBLIC_URL': PUBLIC_URL,
       }),
-      isDev
-        ? new ReactRefreshWebpackPlugin({ overlay: platform !== 'desktop' })
-        : null,
+      isDev ? new ReactRefreshWebpackPlugin({ overlay: false }) : null,
     ].filter(Boolean);
 
-    // add ext and desktop specific extentions like .desktop.tsx, .ext.tsx
-    resolveExtensions.unshift(
+    if (process.env.ENABLE_ANALYZER) {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin(
+          enableAnalyzerHtmlReport
+            ? {
+                analyzerMode: 'static',
+                reportFilename: `report${
+                  configName ? `-${configName}` : ''
+                }.html`,
+                openAnalyzer: false,
+              }
+            : {
+                analyzerMode: 'disabled',
+                generateStatsFile: true,
+                statsOptions: {
+                  reasons: false,
+                  warnings: false,
+                  errors: false,
+                  optimizationBailout: false,
+                  usedExports: false,
+                  providedExports: false,
+                  source: false,
+                  ids: false,
+                  children: false,
+                  chunks: false,
+                  modules: !!process.env.ANALYSE_MODULE,
+                },
+              },
+        ),
+      );
+    }
+
+    resolveExtensions = [
+      ...(buildTargetBrowser
+        ? ['.ts', '.tsx', '.js', '.jsx'].map(
+            (ext) => `.${buildTargetBrowser}-${platform}${ext}`,
+          )
+        : []),
+      ...(configName
+        ? ['.ts', '.tsx', '.js', '.jsx'].map(
+            (ext) => `.${platform}-${configName}${ext}`,
+          )
+        : []),
       ...['.ts', '.tsx', '.js', '.jsx'].map((ext) => `.${platform}${ext}`),
-    );
+      ...resolveExtensions,
+    ];
   }
 
-  // lit file-loader skip handle wasm files
+  // let file-loader skip handle wasm files
   config.module.rules.forEach((rule) => {
     (rule.oneOf || []).forEach((oneOf) => {
       if (oneOf.loader && oneOf.loader.indexOf('file-loader') >= 0) {
@@ -110,8 +163,14 @@ function normalizeConfig({ platform, config, env }) {
 
   config.resolve.extensions = lodash
     .uniq(config.resolve.extensions.concat(resolveExtensions))
-    // sort platform specific extensions to the beginning
-    .sort((a, b) => (a.includes(platform) ? -1 : 0));
+    .sort((a, b) => {
+      // ".ext-ui.ts"  ".ext.ts"
+      if (a.includes(platform) && b.includes(platform)) {
+        return 0;
+      }
+      // sort platform specific extensions to the beginning
+      return a.includes(platform) ? -1 : 0;
+    });
   config.resolve.alias = {
     ...config.resolve.alias,
     '@solana/buffer-layout-utils':
@@ -121,14 +180,40 @@ function normalizeConfig({ platform, config, env }) {
     'framer-motion': 'framer-motion/dist/framer-motion',
     '@mysten/sui.js': '@mysten/sui.js/dist/index.js',
   };
-  config.devtool = 'cheap-module-source-map';
+
+  // Why? do not change original config directly
+  // - Production build do not need sourcemap
+  // - Ext do not need devtool sourcemap, use SourceMapDevToolPlugin instead.
+  // - building slow
+  // config.devtool = 'cheap-module-source-map';
+  config.optimization ??= {};
+  config.optimization.splitChunks ??= {};
+  config.optimization.splitChunks = {
+    ...config.optimization.splitChunks,
+    cacheGroups: {
+      kit_assets: {
+        test: /\/kit\/assets/,
+        name: 'kit_assets',
+        chunks: 'all',
+      },
+      kit_routes: {
+        test: /\/kit\/src\/routes/,
+        name: 'kit_routes',
+        chunks: 'all',
+      },
+      // lodash: {
+      //   test: /\/node_modules\/lodash/,
+      //   name: 'lodash',
+      //   chunks: 'all',
+      // },
+    },
+  };
 
   return config;
 }
 
 module.exports = {
   developmentConsts,
-  resolveExtensions,
   normalizeConfig,
   modifyExpoEnv,
 };

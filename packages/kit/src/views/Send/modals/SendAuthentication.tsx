@@ -1,23 +1,17 @@
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { NavigationProp } from '@react-navigation/core';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
 
 import { Box, Center, Spinner, useToast } from '@onekeyhq/components';
-import { isExternalAccount } from '@onekeyhq/engine/src/engineUtils';
-import {
-  OneKeyError,
-  OneKeyErrorClassNames,
-} from '@onekeyhq/engine/src/errors';
-import { IEncodedTx, ISignedTx } from '@onekeyhq/engine/src/vaults/types';
+import type { OneKeyError } from '@onekeyhq/engine/src/errors';
+import { OneKeyErrorClassNames } from '@onekeyhq/engine/src/errors';
+import type {
+  IEncodedTx,
+  ISignedTxPro,
+} from '@onekeyhq/engine/src/vaults/types';
+import { isExternalAccount } from '@onekeyhq/shared/src/engine/engineUtils';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
@@ -30,12 +24,15 @@ import { AuthExternalAccountInfo } from '../../ExternalAccount/SendConfirm/AuthE
 import { useSignOrSendOfExternalAccount } from '../../ExternalAccount/SendConfirm/useSignOrSendOfExternalAccount';
 import { BaseSendModal } from '../components/BaseSendModal';
 import { DecodeTxButtonTest } from '../components/DecodeTxButtonTest';
-import {
+
+import type {
   ISendAuthenticationModalTitleInfo,
   SendConfirmPayloadInfo,
   SendRoutes,
   SendRoutesParams,
 } from '../types';
+import type { NavigationProp } from '@react-navigation/core';
+import type { RouteProp } from '@react-navigation/native';
 
 type RouteProps = RouteProp<SendRoutesParams, SendRoutes.SendAuthentication>;
 type NavigationProps = NavigationProp<
@@ -96,7 +93,7 @@ const SendAuth: FC<EnableLocalAuthenticationProps> = ({
     signOnly,
   });
 
-  const sendTx = useCallback(async (): Promise<ISignedTx | undefined> => {
+  const sendTx = useCallback(async (): Promise<ISignedTxPro | undefined> => {
     if (isExternal) {
       return sendTxForExternalAccount();
     }
@@ -159,7 +156,7 @@ const SendAuth: FC<EnableLocalAuthenticationProps> = ({
       // throw new Error('test error');
 
       let result: any;
-      let signedTx: ISignedTx | undefined;
+      let signedTx: ISignedTxPro | undefined;
       let signedMsg: string | undefined;
 
       if (submitEncodedTx) {
@@ -313,7 +310,7 @@ const SendAuth: FC<EnableLocalAuthenticationProps> = ({
     </Center>
   );
 };
-const SendAuthMemo = React.memo(SendAuth);
+const SendAuthMemo = memo(SendAuth);
 
 export const SendAuthentication = () => {
   const route = useRoute<RouteProps>();

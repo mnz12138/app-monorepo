@@ -1,8 +1,9 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import axios from 'axios';
-import * as ImagePicker from 'expo-image-picker';
+import { MediaTypeOptions, launchImageLibraryAsync } from 'expo-image-picker';
 import { Row, ZStack } from 'native-base';
 import { useIntl } from 'react-intl';
 import { useWindowDimensions } from 'react-native';
@@ -24,7 +25,7 @@ import {
   useIsVerticalLayout,
   useToast,
 } from '@onekeyhq/components';
-import {
+import type {
   SubmitRequestModalRoutesParams,
   SubmitRequestRoutes,
 } from '@onekeyhq/kit/src/routes';
@@ -35,8 +36,8 @@ import { useSettings } from '../../../hooks/redux';
 import { useNavigationBack } from '../../../hooks/useAppNavigation';
 
 import { requestTicketDetail, submitUri, uploadImage } from './TicketService';
-import { ImageModel, TicketType } from './types';
 
+import type { ImageModel, TicketType } from './types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type SubmitValues = {
@@ -162,8 +163,8 @@ export const SubmitRequest: FC = () => {
   const imageWidth = (modalWidth - padding * 2) / 4;
   const [imageArr, updateImageArr] = useState<ImageModel[]>([]);
   const pickImage = useCallback(async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await launchImageLibraryAsync({
+      mediaTypes: MediaTypeOptions.Images,
       allowsEditing: false,
       base64: true,
       aspect: [4, 3],

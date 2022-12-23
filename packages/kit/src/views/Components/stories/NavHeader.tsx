@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import { Box, IconButton } from '@onekeyhq/components';
 import NavHeader from '@onekeyhq/components/src/NavHeader/NavHeader';
 
@@ -27,6 +28,7 @@ const NavHeaderGallery = () => (
             size="lg"
             type="plain"
             circle
+            mr={-1.5}
           />
         )}
       />

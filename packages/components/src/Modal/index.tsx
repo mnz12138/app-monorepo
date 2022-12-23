@@ -1,13 +1,10 @@
-import {
+import type {
   ComponentProps,
   MutableRefObject,
   ReactElement,
   ReactNode,
-  cloneElement,
-  useCallback,
-  useMemo,
-  useRef,
 } from 'react';
+import { cloneElement, useCallback, useMemo, useRef } from 'react';
 
 import { useFocusEffect } from '@react-navigation/native';
 import { RootSiblingParent } from 'react-native-root-siblings';
@@ -15,31 +12,25 @@ import { RootSiblingParent } from 'react-native-root-siblings';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import Box from '../Box';
-import Button from '../Button';
-import FlatList, { FlatListProps } from '../FlatList';
-import { LocaleIds } from '../locale';
+import FlatList from '../FlatList';
 import { useIsVerticalLayout, useUserDevice } from '../Provider/hooks';
 import ScrollView from '../ScrollView';
-import SectionList, { SectionListProps } from '../SectionList';
+import SectionList from '../SectionList';
 import SortableList from '../SortableList';
 
 import Desktop from './Container/Desktop';
 import Mobile from './Container/Mobile';
 
+import type Button from '../Button';
+import type { FlatListProps } from '../FlatList';
+import type { LocaleIds } from '../locale';
+import type { SectionListProps } from '../SectionList';
+import type { HeaderProps } from './Container/Header/type';
+
 export type ModalProps = {
-  /*
-    we might change Header to Title in future
-  */
-  header?: string;
-  /*
-    we might change headerShown to Header in future
-  */
-  hideBackButton?: boolean;
   headerShown?: boolean;
-  headerDescription?: string | ReactNode;
   trigger?: ReactElement<any>;
   visible?: boolean;
-  closeable?: boolean;
   closeAction?: () => void;
   closeOnOverlayClick?: boolean;
   primaryActionTranslationId?: LocaleIds;
@@ -78,7 +69,7 @@ export type ModalProps = {
   children?: ReactNode;
 
   forceDesktop?: boolean;
-};
+} & HeaderProps;
 
 const defaultProps = {
   closeable: true,
@@ -116,6 +107,7 @@ const Modal = ({
   headerShown,
   modalHeight,
   forceDesktop,
+  rightContent,
   ...rest
 }: ModalProps) => {
   const { size } = useUserDevice();
@@ -261,6 +253,7 @@ const Modal = ({
                 onClose={onModalClose}
                 headerShown={headerShown}
                 header={header}
+                rightContent={rightContent}
                 {...rest}
               >
                 {modalContent}
@@ -276,6 +269,7 @@ const Modal = ({
         onClose={onModalClose}
         headerShown={headerShown}
         header={header}
+        rightContent={rightContent}
         {...rest}
       >
         {modalContent}
@@ -286,6 +280,7 @@ const Modal = ({
     onModalClose,
     headerShown,
     header,
+    rightContent,
     rest,
     modalContent,
     size,

@@ -3,7 +3,7 @@ import { get } from 'lodash';
 
 /* eslint max-classes-per-file: "off" */
 
-import { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
 
 export enum OneKeyErrorClassNames {
   OneKeyError = 'OneKeyError',
@@ -255,6 +255,15 @@ export class InvalidTransferValue extends OneKeyError {
   constructor(key?: string, info?: IOneKeyErrorInfo) {
     super('Invalid Transfer Value', info);
     this.key = key ?? 'msg__engine__incorrect_transfer_value';
+  }
+}
+
+export class TransferValueTooSmall extends OneKeyError {
+  override key = 'msg__amount_too_small';
+
+  constructor(key?: string, info?: IOneKeyErrorInfo) {
+    super('Transfer Value too small', info);
+    this.key = key ?? 'msg__amount_too_small';
   }
 }
 

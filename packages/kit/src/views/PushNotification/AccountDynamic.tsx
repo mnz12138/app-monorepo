@@ -1,10 +1,5 @@
-import React, {
-  FC,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 
 import { useIntl } from 'react-intl';
 
@@ -17,24 +12,28 @@ import {
   Typography,
   useTheme,
 } from '@onekeyhq/components';
-import { IMPL_EVM } from '@onekeyhq/engine/src/constants';
 import { isCoinTypeCompatibleWithImpl } from '@onekeyhq/engine/src/managers/impl';
-import { AccountDynamicItem } from '@onekeyhq/engine/src/managers/notification';
-import { Account } from '@onekeyhq/engine/src/types/account';
+import type { AccountDynamicItem } from '@onekeyhq/engine/src/managers/notification';
+import type { Account } from '@onekeyhq/engine/src/types/account';
 import {
   WALLET_TYPE_EXTERNAL,
   WALLET_TYPE_IMPORTED,
   WALLET_TYPE_WATCHING,
 } from '@onekeyhq/engine/src/types/wallet';
 import { useNavigation } from '@onekeyhq/kit/src/hooks';
+import { IMPL_EVM } from '@onekeyhq/shared/src/engine/engineConsts';
 
 import backgroundApiProxy from '../../background/instance/backgroundApiProxy';
 import WalletAvatar from '../../components/WalletSelector/WalletAvatar';
-import { HomeRoutes, HomeRoutesParams } from '../../routes/types';
 
 import { ListEmptyComponent } from './Empty';
-import { WalletData, useEnabledAccountDynamicAccounts } from './hooks';
+import {
+  useAddressCanSubscribe,
+  useEnabledAccountDynamicAccounts,
+} from './hooks';
 
+import type { HomeRoutes, HomeRoutesParams } from '../../routes/types';
+import type { WalletData } from './hooks';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavigationProps = NativeStackNavigationProp<
@@ -51,6 +50,8 @@ const Item: FC<{
 }> = ({ divider, account, onChange, checked, icon }) => {
   const [loading, setLoading] = useState(false);
 
+  const canSubscribe = useAddressCanSubscribe(account);
+
   const handleChange = (value: boolean) => {
     setLoading(true);
     onChange(value).finally(() =>
@@ -59,6 +60,10 @@ const Item: FC<{
       }, 200),
     );
   };
+
+  if (!canSubscribe) {
+    return null;
+  }
 
   return (
     <Box

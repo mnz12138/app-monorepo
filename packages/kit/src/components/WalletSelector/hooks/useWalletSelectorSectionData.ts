@@ -1,9 +1,10 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { debounce, orderBy } from 'lodash';
 import { InteractionManager } from 'react-native';
 
-import { IWallet } from '@onekeyhq/engine/src/types';
+import type { IWallet } from '@onekeyhq/engine/src/types';
 import {
   WALLET_TYPE_EXTERNAL,
   WALLET_TYPE_HD,
@@ -35,8 +36,8 @@ const buildData = debounce(
     setData,
   }: {
     wallets: IWallet[];
-    setData: React.Dispatch<
-      React.SetStateAction<
+    setData: Dispatch<
+      SetStateAction<
         { type: EWalletDataSectionType; data: IWalletDataBase[] }[]
       >
     >;

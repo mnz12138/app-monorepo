@@ -1,24 +1,11 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { CardanoGetAddressMethodParams, PROTO } from '@onekeyfe/hd-core';
-
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { CoreSDKLoader } from '@onekeyhq/shared/src/device/hardwareInstance';
+import { COINTYPE_ADA as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ADA as COIN_TYPE } from '../../../constants';
-import {
-  NotImplemented,
-  OneKeyHardwareError,
-  OneKeyInternalError,
-} from '../../../errors';
-import { AccountType, DBUTXOAccount } from '../../../types/account';
+import { OneKeyHardwareError, OneKeyInternalError } from '../../../errors';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
-import {
-  IHardwareGetAddressParams,
-  IPrepareHardwareAccountsParams,
-} from '../../types';
 
 import { getChangeAddress } from './helper/cardanoUtils';
 import { getCardanoApi } from './helper/sdk';
@@ -26,23 +13,39 @@ import {
   transformToOneKeyInputs,
   transformToOneKeyOutputs,
 } from './helper/transformations';
-import { IEncodedTxADA, NetworkId } from './types';
+import { NetworkId } from './types';
 
+import type { DBUTXOAccount } from '../../../types/account';
+import type {
+  IHardwareGetAddressParams,
+  IPrepareHardwareAccountsParams,
+} from '../../types';
+import type { IUnsignedMessageEvm } from '../evm/Vault';
+import type { IEncodedTxADA } from './types';
 import type AdaVault from './Vault';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { CardanoGetAddressMethodParams } from '@onekeyfe/hd-core';
 
 const PATH_PREFIX = `m/1852'/${COIN_TYPE}'`;
 const ProtocolMagic = 764824073;
 
-// @ts-ignore
 export class KeyringHardware extends KeyringHardwareBase {
   override async prepareAccounts(
     params: IPrepareHardwareAccountsParams,
   ): Promise<DBUTXOAccount[]> {
     const { indexes, names } = params;
-    const paths = indexes.map((index) => `${PATH_PREFIX}/${index}'/0/0`);
-    const stakingPaths = indexes.map((index) => `${PATH_PREFIX}/${index}'/2/0`);
+    const ignoreFirst = indexes[0] !== 0;
+    const usedIndexes = [...(ignoreFirst ? [indexes[0] - 1] : []), ...indexes];
+    const paths = usedIndexes.map((index) => `${PATH_PREFIX}/${index}'/0/0`);
+    const stakingPaths = usedIndexes.map(
+      (index) => `${PATH_PREFIX}/${index}'/2/0`,
+    );
 
     const showOnOneKey = false;
+    const { PROTO } = await CoreSDKLoader();
     const HardwareSDK = await this.getHardwareSDKInstance();
     const { connectId, deviceId } = await this.getHardwareInfo();
     const passphraseState = await this.getWalletPassphraseState();
@@ -55,7 +58,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       },
       networkId: NetworkId.MAINNET,
       protocolMagic: 764824073,
-      derivationType: PROTO.CardanoDerivationType.ICARUS_TREZOR,
+      derivationType: PROTO.CardanoDerivationType.ICARUS,
       showOnOneKey,
     })) as CardanoGetAddressMethodParams[];
 
@@ -73,10 +76,10 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!response.success || !response.payload) {
       console.error(response.payload);
-      throw deviceUtils.convertDeviceError(response.payload);
+      throw convertDeviceError(response.payload);
     }
 
-    if (response.payload.length !== indexes.length) {
+    if (response.payload.length !== usedIndexes.length) {
       throw new OneKeyInternalError('Unable to get publick key.');
     }
 
@@ -88,23 +91,33 @@ export class KeyringHardware extends KeyringHardwareBase {
     for (const addressInfo of response.payload) {
       const { address, xpub, serializedPath, stakeAddress } = addressInfo;
       if (address) {
-        const name = (names || [])[index] || `ADA #${indexes[index] + 1}`;
+        const name =
+          (names || [])[index] || `CARDANO #${usedIndexes[index] + 1}`;
         const addresses: Record<string, string> = {
           [firstAddressRelPath]: address,
         };
         if (stakeAddress) {
           addresses[stakingAddressRelPath] = stakeAddress;
         }
-        ret.push({
-          id: `${this.walletId}--${serializedPath}`,
-          name,
-          type: AccountType.UTXO,
-          path: serializedPath,
-          coinType: COIN_TYPE,
-          xpub: xpub ?? '',
-          address,
-          addresses,
-        });
+        const accountPath = serializedPath.slice(0, -4);
+        if (!ignoreFirst || index > 0) {
+          ret.push({
+            id: `${this.walletId}--${accountPath}`,
+            name,
+            type: AccountType.UTXO,
+            path: serializedPath,
+            coinType: COIN_TYPE,
+            xpub: xpub ?? '',
+            address,
+            addresses,
+          });
+        }
+
+        if (usedIndexes.length === 1) {
+          // Only getting the first account, ignore balance checking.
+          break;
+        }
+
         const { tx_count: txCount } = await client.getAddressDetails(address);
         if (txCount > 0) {
           index += 1;
@@ -119,6 +132,7 @@ export class KeyringHardware extends KeyringHardwareBase {
   }
 
   async getAddress(params: IHardwareGetAddressParams): Promise<string> {
+    const { PROTO } = await CoreSDKLoader();
     const HardwareSDK = await this.getHardwareSDKInstance();
     const { connectId, deviceId } = await this.getHardwareInfo();
     const passphraseState = await this.getWalletPassphraseState();
@@ -141,10 +155,11 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   override async signTransaction(unsignedTx: UnsignedTx): Promise<SignedTx> {
+    const { PROTO } = await CoreSDKLoader();
     const HardwareSDK = await this.getHardwareSDKInstance();
     const { connectId, deviceId } = await this.getHardwareInfo();
     const passphraseState = await this.getWalletPassphraseState();
@@ -167,19 +182,22 @@ export class KeyringHardware extends KeyringHardwareBase {
       ),
       fee,
       protocolMagic: ProtocolMagic,
-      derivationType: PROTO.CardanoDerivationType.ICARUS_TREZOR,
+      derivationType: PROTO.CardanoDerivationType.ICARUS,
       networkId: NetworkId.MAINNET,
       // TODO: certificates, withdrawals
     });
 
     if (!res.success) {
-      throw deviceUtils.convertDeviceError(res.payload);
+      throw convertDeviceError(res.payload);
     }
 
     const CardanoApi = await getCardanoApi();
     const signedTx = await CardanoApi.hwSignTransaction(
       tx.body,
       res.payload.witnesses,
+      {
+        signOnly: !!encodedTx.signOnly,
+      },
     );
 
     return {
@@ -188,7 +206,42 @@ export class KeyringHardware extends KeyringHardwareBase {
     };
   }
 
-  signMessage(): Promise<string[]> {
-    throw new NotImplemented();
+  override async signMessage(
+    messages: IUnsignedMessageEvm[],
+  ): Promise<string[]> {
+    debugLogger.common.info('signMessage', messages);
+    const dbAccount = await this.getDbAccount();
+
+    const { PROTO } = await CoreSDKLoader();
+    const { connectId, deviceId } = await this.getHardwareInfo();
+    const passphraseState = await this.getWalletPassphraseState();
+    const HardwareSDK = await this.getHardwareSDKInstance();
+
+    const result = await Promise.all(
+      messages.map(
+        // @ts-expect-error
+        async ({ payload }: { payload: { addr: string; payload: string } }) => {
+          const response = await HardwareSDK.cardanoSignMessage(
+            connectId,
+            deviceId,
+            {
+              ...passphraseState,
+              path: dbAccount.path,
+              networkId: NetworkId.MAINNET,
+              derivationType: PROTO.CardanoDerivationType.ICARUS,
+              message: payload.payload,
+            },
+          );
+
+          if (!response.success) {
+            throw convertDeviceError(response.payload);
+          }
+
+          return response.payload;
+        },
+      ),
+    );
+
+    return result.map((ret) => JSON.stringify(ret));
   }
 }

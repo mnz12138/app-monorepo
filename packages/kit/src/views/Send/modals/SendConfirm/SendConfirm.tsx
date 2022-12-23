@@ -1,13 +1,13 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import {
-  IDecodedTxActionType,
+import type {
   IFeeInfoUnit,
-  ISignedTx,
+  ISignedTxPro,
 } from '@onekeyhq/engine/src/vaults/types';
+import { IDecodedTxActionType } from '@onekeyhq/engine/src/vaults/types';
+import { ENABLED_DAPP_SCOPE } from '@onekeyhq/shared/src/background/backgroundUtils';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
-import { ENABLED_DAPP_SCOPE } from '../../../../background/utils';
 import { useWalletConnectPrepareConnection } from '../../../../components/WalletConnect/useWalletConnectPrepareConnection';
 import { useActiveSideAccount } from '../../../../hooks';
 import { useDecodedTx } from '../../../../hooks/useDecodedTx';
@@ -18,14 +18,7 @@ import { TxDetailView } from '../../../TxDetail/TxDetailView';
 import { BaseSendConfirmModal } from '../../components/BaseSendConfirmModal';
 import { FeeInfoInputForConfirmLite } from '../../components/FeeInfoInput';
 import { SendConfirmErrorsAlert } from '../../components/SendConfirmErrorsAlert';
-import {
-  HardwareSwapContinueParams,
-  ITxConfirmViewProps,
-  ITxConfirmViewPropsHandleConfirm,
-  SendAuthenticationParams,
-  SendFeedbackReceiptParams,
-  SendRoutes,
-} from '../../types';
+import { SendRoutes } from '../../types';
 import {
   FEE_INFO_POLLING_INTERVAL,
   useFeeInfoPayload,
@@ -37,6 +30,14 @@ import { useSendConfirmRouteParamsParsed } from '../../utils/useSendConfirmRoute
 import { SendConfirmLoading } from './SendConfirmLoading';
 import { SendConfirmSpeedUpOrCancel } from './SendConfirmSpeedUpOrCancel';
 import { SendConfirmTransfer } from './SendConfirmTransfer';
+
+import type {
+  HardwareSwapContinueParams,
+  ITxConfirmViewProps,
+  ITxConfirmViewPropsHandleConfirm,
+  SendAuthenticationParams,
+  SendFeedbackReceiptParams,
+} from '../../types';
 
 function SendConfirm({
   sendConfirmParamsParsed,
@@ -108,6 +109,7 @@ function SendConfirm({
     useFeeInTx: feeInfoUseFeeInTx,
     pollingInterval: feeInfoEditable ? FEE_INFO_POLLING_INTERVAL : 0,
     signOnly: routeParams.signOnly,
+    payload: payloadInfo || payload,
   });
 
   useWalletConnectPrepareConnection({
@@ -139,7 +141,7 @@ function SendConfirm({
         });
       };
       const onSuccess: SendAuthenticationParams['onSuccess'] = async (
-        tx: ISignedTx,
+        tx: ISignedTxPro,
         data,
       ) => {
         // refresh balance
@@ -147,7 +149,6 @@ function SendConfirm({
           activeAccountId: accountId,
           activeNetworkId: networkId,
           withBalance: true,
-          withPrice: false,
         });
         if (routeParams.signOnly) {
           await dappApprove.resolve({ result: tx.rawTx });
@@ -288,14 +289,12 @@ function SendConfirm({
 
   // show SendConfirm TxDetail
   sharedProps.children = (
-    <>
-      <TxDetailView
-        sendConfirmParamsParsed={sendConfirmParamsParsed}
-        isSendConfirm
-        decodedTx={decodedTx}
-        feeInput={feeInput}
-      />
-    </>
+    <TxDetailView
+      sendConfirmParamsParsed={sendConfirmParamsParsed}
+      isSendConfirm
+      decodedTx={decodedTx}
+      feeInput={feeInput}
+    />
   );
 
   if (isSpeedUpOrCancel) {

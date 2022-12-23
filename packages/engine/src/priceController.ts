@@ -3,7 +3,7 @@ import { RestfulRequest } from '@onekeyfe/blockchain-libs/dist/basic/request/res
 import BigNumber from 'bignumber.js';
 import lru from 'tiny-lru';
 
-import { TokenChartData } from '@onekeyhq/kit/src/store/reducers/tokens';
+import type { TokenChartData } from '@onekeyhq/kit/src/store/reducers/tokens';
 
 import { getFiatEndpoint } from './endpoint';
 import { getPresetNetworks } from './presets';
@@ -16,13 +16,14 @@ export type ChartQueryParams = {
   vs_currency?: string;
   points?: string;
 };
+
 export class PriceController {
   CACHE_DURATION = 1000 * 30;
 
   cache = lru(300);
 
   get req() {
-    return new RestfulRequest(getFiatEndpoint());
+    return new RestfulRequest(getFiatEndpoint(), {}, 60 * 1000);
   }
 
   async fetchApi<T>(path: string, params?: Record<string, string>) {
@@ -44,16 +45,16 @@ export class PriceController {
     return result;
   }
 
-  async getFiats(fiats: Set<string>): Promise<Record<string, BigNumber>> {
+  async getFiats(fiats: Array<string>): Promise<Record<string, BigNumber>> {
     const ret: Record<string, BigNumber> = { 'usd': new BigNumber('1') };
     let rates: Record<string, { value: number }>;
+    const params = { 'vs_currencies': fiats.join(',') };
     try {
-      const res = await this.fetchApi<{
-        rates: Record<string, { value: number }>;
-      }>('/exchange_rates');
-      rates = res.rates;
+      rates = await this.fetchApi<Record<string, { value: number }>>(
+        '/exchange_rates/vs_currencies',
+        params,
+      );
     } catch (e) {
-      console.error(e);
       return Promise.reject(new Error('Failed to get fiat rates.'));
     }
 
@@ -64,7 +65,11 @@ export class PriceController {
     const btcToUsd = new BigNumber(rates.usd.value);
     ret.btc = new BigNumber(1).div(btcToUsd);
     fiats.forEach((fiat) => {
-      if (fiat !== 'usd' && typeof rates[fiat] !== 'undefined') {
+      if (
+        fiat !== 'usd' &&
+        fiat !== 'btc' &&
+        typeof rates[fiat] !== 'undefined'
+      ) {
         ret[fiat] = new BigNumber(rates[fiat].value).div(btcToUsd);
       }
     });

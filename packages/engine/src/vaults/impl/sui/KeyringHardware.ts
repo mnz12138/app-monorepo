@@ -1,25 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { JsonRpcProvider } from '@mysten/sui.js';
-import { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_SUI as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_SUI as COIN_TYPE } from '../../../constants';
 import { OneKeyHardwareError, OneKeyInternalError } from '../../../errors';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
-import { AptosMessage } from '../../../types/message';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
-import {
+import { addHexPrefix, hexlify } from '../../utils/hexUtils';
+
+import { toTransaction } from './utils';
+
+import type { DBSimpleAccount } from '../../../types/account';
+import type { AptosMessage } from '../../../types/message';
+import type {
   IHardwareGetAddressParams,
   IPrepareHardwareAccountsParams,
   ISignCredentialOptions,
   SignedTxResult,
 } from '../../types';
-import { addHexPrefix, hexlify } from '../../utils/hexUtils';
-
-import { toTransaction } from './utils';
+import type { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'`;
 
@@ -44,7 +46,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!response.success) {
       debugLogger.common.error(response.payload);
-      throw deviceUtils.convertDeviceError(response.payload);
+      throw convertDeviceError(response.payload);
     }
 
     const pubKeys = response.payload
@@ -78,7 +80,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     }
     if (!addressesResponse.success) {
       debugLogger.common.error(addressesResponse.payload);
-      throw deviceUtils.convertDeviceError(addressesResponse.payload);
+      throw convertDeviceError(addressesResponse.payload);
     }
 
     let pubKeys: Array<string> = [];
@@ -124,7 +126,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload.address.toLowerCase();
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   async signTransaction(
@@ -167,7 +169,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   override async signMessage(

@@ -1,23 +1,23 @@
-import {
-  CurveName,
-  batchGetPublicKeys,
-} from '@onekeyfe/blockchain-libs/dist/secret';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import { batchGetPublicKeys } from '@onekeyfe/blockchain-libs/dist/secret';
 
-import { COINTYPE_NEAR as COIN_TYPE } from '../../../constants';
-import { ExportedSeedCredential } from '../../../dbs/base';
+import { COINTYPE_NEAR as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
+
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHdBase } from '../../keyring/KeyringHdBase';
-import { IPrepareSoftwareAccountsParams } from '../../types';
 
 import { baseEncode, signTransaction } from './utils';
 
-import type { ISignCredentialOptions } from '../../types';
+import type { ExportedSeedCredential } from '../../../dbs/base';
+import type { DBSimpleAccount } from '../../../types/account';
+import type {
+  IPrepareSoftwareAccountsParams,
+  ISignCredentialOptions,
+  ISignedTxPro,
+  IUnsignedTxPro,
+} from '../../types';
+import type { CurveName } from '@onekeyfe/blockchain-libs/dist/secret';
 
 // TODO move to abstract attribute
 // m/44'/397'/0', m/44'/397'/1', m/44'/397'/2'
@@ -96,16 +96,23 @@ export class KeyringHd extends KeyringHdBase {
     };
   }
 
-  override async signTransaction(
-    unsignedTx: UnsignedTx,
+  async getSigner(
     options: ISignCredentialOptions,
-  ): Promise<SignedTx> {
-    const dbAccount = await this.getDbAccount();
+    { address }: { address: string },
+  ) {
+    const signers = await this.getSigners(options?.password || '', [address]);
+    const signer = signers[address];
+    return signer;
+  }
 
-    const signers = await this.getSigners(options.password || '', [
-      dbAccount.address,
-    ]);
-    const signer = signers[dbAccount.address];
+  override async signTransaction(
+    unsignedTx: IUnsignedTxPro,
+    options: ISignCredentialOptions,
+  ): Promise<ISignedTxPro> {
+    const dbAccount = await this.getDbAccount();
+    const signer = await this.getSigner(options, {
+      address: dbAccount.address,
+    });
 
     return signTransaction(unsignedTx, signer);
   }

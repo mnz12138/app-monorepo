@@ -1,18 +1,12 @@
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { MotiView } from 'moti';
 import { useIntl } from 'react-intl';
 
 import { Box, Text } from '@onekeyhq/components';
 import ScrollableButtonGroup from '@onekeyhq/components/src/ScrollableButtonGroup/ScrollableButtonGroup';
-import { Collection } from '@onekeyhq/engine/src/types/nft';
+import type { Collection } from '@onekeyhq/engine/src/types/nft';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
 import { useCollectionDetail } from '../hook';
@@ -136,4 +130,4 @@ const NotableCollection = () => {
   );
 };
 
-export default React.memo(NotableCollection);
+export default memo(NotableCollection);

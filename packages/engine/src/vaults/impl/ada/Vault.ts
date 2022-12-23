@@ -1,51 +1,32 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {
-  PartialTokenInfo,
-  TransactionStatus,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
+import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import BigNumber from 'bignumber.js';
 import memoizee from 'memoizee';
 
+import { COINTYPE_ADA } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ADA } from '../../../constants';
-import { ExportedSeedCredential } from '../../../dbs/base';
 import {
+  InsufficientBalance,
   InvalidAddress,
   NotImplemented,
   OneKeyInternalError,
 } from '../../../errors';
+import { AccountType } from '../../../types/account';
 import {
-  Account,
-  AccountType,
-  DBAccount,
-  DBUTXOAccount,
-} from '../../../types/account';
-import { Token } from '../../../types/token';
-import {
-  IApproveInfo,
-  IDecodedTx,
-  IDecodedTxAction,
-  IDecodedTxActionNativeTransfer,
-  IDecodedTxActionTokenTransfer,
   IDecodedTxActionType,
   IDecodedTxDirection,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IFeeInfo,
-  IFeeInfoUnit,
-  IHistoryTx,
-  ISignedTx,
-  ITransferInfo,
-  IUnsignedTxPro,
-  IUtxoAddressInfo,
 } from '../../types';
 import { VaultBase } from '../../VaultBase';
 
 import { validBootstrapAddress, validShelleyAddress } from './helper/addresses';
-import { generateExportedCredential } from './helper/bip32';
+import {
+  decodePrivateKeyByXprv,
+  generateExportedCredential,
+} from './helper/bip32';
 import { getChangeAddress } from './helper/cardanoUtils';
 import Client from './helper/client';
 import { getCardanoApi } from './helper/sdk';
@@ -55,7 +36,32 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import settings from './settings';
-import { IAdaAmount, IAdaHistory, IEncodeOutput, IEncodedTxADA } from './types';
+
+import type { ExportedSeedCredential } from '../../../dbs/base';
+import type { Account, DBUTXOAccount } from '../../../types/account';
+import type { Token } from '../../../types/token';
+import type {
+  IApproveInfo,
+  IDecodedTx,
+  IDecodedTxAction,
+  IDecodedTxActionNativeTransfer,
+  IDecodedTxActionTokenTransfer,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IFeeInfo,
+  IFeeInfoUnit,
+  IHistoryTx,
+  ISignedTxPro,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
+import type {
+  IAdaAmount,
+  IAdaHistory,
+  IEncodeOutput,
+  IEncodedTxADA,
+} from './types';
+import type { PartialTokenInfo } from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 // @ts-ignore
 export default class Vault extends VaultBase {
@@ -381,13 +387,22 @@ export default class Vault extends VaultBase {
           assets: [],
         };
     const CardanoApi = await getCardanoApi();
-    const txPlan = await CardanoApi.composeTxPlan(
-      transferInfo,
-      dbAccount.xpub,
-      utxos,
-      dbAccount.address,
-      [output as any],
-    );
+    let txPlan: Awaited<ReturnType<typeof CardanoApi.composeTxPlan>>;
+    try {
+      txPlan = await CardanoApi.composeTxPlan(
+        transferInfo,
+        dbAccount.xpub,
+        utxos,
+        dbAccount.address,
+        [output as any],
+      );
+    } catch (e: any) {
+      const utxoVauleTooSmall = 'UTXO_VALUE_TOO_SMALL';
+      if (e.code === utxoVauleTooSmall || e.message === utxoVauleTooSmall) {
+        throw new InsufficientBalance();
+      }
+      throw e;
+    }
 
     const changeAddress = getChangeAddress(dbAccount);
 
@@ -406,6 +421,7 @@ export default class Vault extends VaultBase {
       transferInfo,
       tx,
       changeAddress,
+      signOnly: false,
     };
   }
 
@@ -453,7 +469,7 @@ export default class Vault extends VaultBase {
     let txs: IAdaHistory[] = [];
 
     try {
-      txs = (await client.getHistory(stakeAddress)) ?? [];
+      txs = (await client.getHistory(stakeAddress, dbAccount.address)) ?? [];
     } catch (e) {
       console.error(e);
     }
@@ -549,7 +565,9 @@ export default class Vault extends VaultBase {
     return (await Promise.all(promises)).filter(Boolean);
   }
 
-  override async broadcastTransaction(signedTx: ISignedTx): Promise<ISignedTx> {
+  override async broadcastTransaction(
+    signedTx: ISignedTxPro,
+  ): Promise<ISignedTxPro> {
     debugLogger.engine.info('broadcastTransaction START:', {
       rawTx: signedTx.rawTx,
     });
@@ -680,6 +698,10 @@ export default class Vault extends VaultBase {
     );
   }
 
+  override getPrivateKeyByCredential(credential: string) {
+    return decodePrivateKeyByXprv(credential);
+  }
+
   private getStakeAddress = memoizee(
     async (address: string) => {
       if (validShelleyAddress(address) && address.startsWith('stake')) {
@@ -696,4 +718,52 @@ export default class Vault extends VaultBase {
       promise: true,
     },
   );
+
+  // Dapp Function
+
+  async getBalanceForDapp(address: string) {
+    const [balance] = await this.getBalances([{ address }]);
+    const CardanoApi = await getCardanoApi();
+    return CardanoApi.dAppUtils.getBalance(balance ?? new BigNumber(0));
+  }
+
+  async getUtxosForDapp(amount?: string) {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+    const client = await this.getClient();
+    const utxos = await client.getUTXOs(dbAccount);
+    const CardanoApi = await getCardanoApi();
+    return CardanoApi.dAppUtils.getUtxos(dbAccount.address, utxos, amount);
+  }
+
+  async getAccountAddressForDapp() {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+    const CardanoApi = await getCardanoApi();
+    return CardanoApi.dAppUtils.getAddresses([dbAccount.address]);
+  }
+
+  async getStakeAddressForDapp() {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+    const stakeAddress = await this.getStakeAddress(dbAccount.address);
+    const CardanoApi = await getCardanoApi();
+    return CardanoApi.dAppUtils.getAddresses([stakeAddress]);
+  }
+
+  async buildTxCborToEncodeTx(txHex: string): Promise<IEncodedTxADA> {
+    const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
+    const changeAddress = getChangeAddress(dbAccount);
+    const client = await this.getClient();
+    const stakeAddress = await this.getStakeAddress(dbAccount.address);
+    const addresses = await client.getAssociatedAddresses(stakeAddress);
+    const utxos = await client.getUTXOs(dbAccount);
+    const CardanoApi = await getCardanoApi();
+    const encodeTx = await CardanoApi.dAppUtils.convertCborTxToEncodeTx(
+      txHex,
+      utxos,
+      addresses,
+    );
+    return {
+      ...encodeTx,
+      changeAddress,
+    };
+  }
 }

@@ -1,22 +1,23 @@
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import * as sdk from 'algosdk';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_ALGO as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ALGO as COIN_TYPE } from '../../../constants';
 import { NotImplemented, OneKeyHardwareError } from '../../../errors';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
 
+import type { DBSimpleAccount } from '../../../types/account';
 import type {
   IGetAddressParams,
   IPrepareHardwareAccountsParams,
 } from '../../types';
 import type { IEncodedTxAlgo } from './types';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'/0'/0'`;
 
@@ -56,7 +57,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -95,7 +96,7 @@ export class KeyringHardware extends KeyringHardwareBase {
 
     if (!addressesResponse.success) {
       debugLogger.common.error(addressesResponse.payload);
-      throw deviceUtils.convertDeviceError(addressesResponse.payload);
+      throw convertDeviceError(addressesResponse.payload);
     }
 
     return addressesResponse.payload
@@ -124,6 +125,6 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return response.payload.address;
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 }

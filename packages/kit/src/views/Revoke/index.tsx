@@ -1,10 +1,5 @@
-import React, {
-  FC,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import type { FC } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import { isEqual } from 'lodash';
@@ -19,12 +14,12 @@ import {
   VStack,
   useIsVerticalLayout,
 } from '@onekeyhq/components';
-import { IMPL_EVM } from '@onekeyhq/engine/src/constants';
-import {
+import type {
   ERC20TokenAllowance,
   ERC721TokenAllowance,
-  toFloat,
 } from '@onekeyhq/engine/src/managers/revoke';
+import { toFloat } from '@onekeyhq/engine/src/managers/revoke';
+import { IMPL_EVM } from '@onekeyhq/shared/src/engine/engineConsts';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import { NetworkAccountSelectorTrigger } from '../../components/NetworkAccountSelector';
@@ -134,24 +129,23 @@ const RevokePage: FC = () => {
     );
   }, [intl, connectAndCreateExternalAccount, account?.id]);
 
+  const headerRight = useCallback(() => {
+    if (!account?.id) {
+      return walletConnectButton;
+    }
+    return (
+      <Box pr="6">
+        <NetworkAccountSelectorTrigger type={isVertical ? 'plain' : 'basic'} />
+      </Box>
+    );
+  }, [account?.id, isVertical, walletConnectButton]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: '',
-      headerRight: () => {
-        if (!account?.id) {
-          return walletConnectButton;
-        }
-        if (isVertical) {
-          return <NetworkAccountSelectorTrigger />;
-        }
-        return (
-          <Box pr="6">
-            <NetworkAccountSelectorTrigger />
-          </Box>
-        );
-      },
+      headerRight,
     });
-  }, [navigation, isVertical, account?.id, walletConnectButton]);
+  }, [navigation, headerRight]);
 
   const content = useMemo(() => {
     if (network && network?.impl !== IMPL_EVM && !isLoading) {

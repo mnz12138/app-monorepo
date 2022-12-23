@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import { useIntl } from 'react-intl';
 
 import {
@@ -16,19 +17,19 @@ import {
 import Pressable from '@onekeyhq/components/src/Pressable/Pressable';
 import { useIsVerticalLayout } from '@onekeyhq/components/src/Provider/hooks';
 import { Text } from '@onekeyhq/components/src/Typography';
-import { IAccount } from '@onekeyhq/engine/src/types';
+import type { IAccount } from '@onekeyhq/engine/src/types';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import FormChainSelector from '@onekeyhq/kit/src/components/Form/ChainSelector';
 import { useHelpLink } from '@onekeyhq/kit/src/hooks';
 import { useGeneral, useRuntime } from '@onekeyhq/kit/src/hooks/redux';
-import {
-  CreateAccountModalRoutes,
-  CreateAccountRoutesParams,
-} from '@onekeyhq/kit/src/routes';
-import { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import type { CreateAccountRoutesParams } from '@onekeyhq/kit/src/routes';
+import { CreateAccountModalRoutes } from '@onekeyhq/kit/src/routes';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
 import { openUrl } from '@onekeyhq/kit/src/utils/openUrl';
 
 import { deviceUtils } from '../../../utils/hardware';
+
+import type { RouteProp } from '@react-navigation/core';
 
 type PrivateKeyFormValues = {
   network: string;
@@ -56,8 +57,7 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
       defaultValues: { name: '', addressType: 'default' },
     });
   const { activeNetworkId } = useGeneral();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<true | undefined>(undefined);
 
   const navigation = useNavigation<NavigationProps['navigation']>();
   const route = useRoute<RouteProps>();
@@ -121,11 +121,20 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
       for (const [key, value] of Object.entries(
         selectedNetwork.accountNameInfo,
       )) {
-        ret.push({ label: value.label || '', value: key });
+        ret.push({
+          label: value.label || '',
+          value: key,
+          description: value.addressPrefix
+            ? intl.formatMessage(
+                { id: 'content__start_with_str' },
+                { 0: value.addressPrefix },
+              )
+            : undefined,
+        });
       }
     }
     return ret.length > 1 ? ret : [];
-  }, [selectedNetwork]);
+  }, [selectedNetwork, intl]);
 
   useEffect(() => {
     async function setNameAndCheck() {
@@ -139,6 +148,7 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
           const usedPurpose = parseInt(category.split("'/")[0]);
           setPurpose(usedPurpose);
           try {
+            setIsLoading(true);
             await backgroundApiProxy.validator.validateCanCreateNextAccount(
               selectedWalletId,
               selectedNetwork.id,
@@ -149,6 +159,8 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
             setCannotCreateAccountReason(
               intl.formatMessage({ id: key as any }, info as any),
             );
+          } finally {
+            setIsLoading(undefined);
           }
           return;
         }
@@ -172,7 +184,7 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
   const addressTypeHelpLink = useHelpLink({ path: 'articles/360002057776' });
   const onAddressTypeHelpLinkPressed = useCallback(() => {
     const title = intl.formatMessage({ id: 'title__help_center' });
-    openUrl(addressTypeHelpLink, title);
+    openUrl(addressTypeHelpLink, title, { modalMode: true });
   }, [addressTypeHelpLink, intl]);
 
   const authenticationDone = useCallback(
@@ -235,6 +247,7 @@ const CreateAccount: FC<CreateAccountProps> = ({ onClose }) => {
       primaryActionProps={{
         onPromise: onSubmit,
         isDisabled: !!cannotCreateAccountReason,
+        isLoading,
       }}
       primaryActionTranslationId="action__create"
       hideSecondaryAction

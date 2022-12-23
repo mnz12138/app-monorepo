@@ -1,11 +1,12 @@
-import React, { useCallback } from 'react';
+import type { FC } from 'react';
+import { useCallback } from 'react';
 
 import { HeaderBackButton as NavigationHeaderBackButton } from '@react-navigation/elements';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { useThemeValue } from '@onekeyhq/components';
 import { LayoutHeaderDesktop } from '@onekeyhq/components/src/Layout/Header/LayoutHeaderDesktop';
-import { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
 import AddressBook from '@onekeyhq/kit/src/views/AddressBook/Listing';
 import DiscoverScreen from '@onekeyhq/kit/src/views/Discover';
 import DAppList from '@onekeyhq/kit/src/views/Discover/DAppList';
@@ -37,6 +38,7 @@ import { toFocusedLazy } from '../../components/LazyRenderWhenFocus';
 import FullTokenList from '../../views/FullTokenList/FullTokenList';
 import NFTMarketCollectionScreen from '../../views/NFTMarket/CollectionDetail';
 import NFTMarketLiveMintingList from '../../views/NFTMarket/LiveMintingList';
+import PNLDetailScreen from '../../views/NFTMarket/PNL/PNLDetail';
 import NFTMarketStatsList from '../../views/NFTMarket/StatsList';
 import renderCustomSubStackHeader from '../Stack/Header';
 import { HomeRoutes, TabRoutes } from '../types';
@@ -44,11 +46,11 @@ import { HomeRoutes, TabRoutes } from '../types';
 export interface TabRouteConfig {
   name: TabRoutes;
   translationId: LocaleIds;
-  component: React.FC;
+  component: FC;
   tabBarIcon: (props: { focused?: boolean }) => string;
   children?: {
     name: HomeRoutes;
-    component: React.FC<any>;
+    component: FC<any>;
     alwaysShowBackButton?: boolean;
   }[];
 }
@@ -56,7 +58,9 @@ export interface TabRouteConfig {
 export const tabRoutes: TabRouteConfig[] = [
   {
     name: TabRoutes.Home,
-    component: toFocusedLazy(HomeScreen),
+    component: toFocusedLazy(HomeScreen, {
+      rootTabName: TabRoutes.Home,
+    }),
     tabBarIcon: (focused) =>
       focused ? 'CreditCardSolid' : 'CreditCardOutline',
     translationId: 'form__account',
@@ -82,6 +86,10 @@ export const tabRoutes: TabRouteConfig[] = [
       {
         name: HomeRoutes.NFTMarketCollectionScreen,
         component: NFTMarketCollectionScreen,
+      },
+      {
+        name: HomeRoutes.NFTPNLScreen,
+        component: PNLDetailScreen,
       },
     ],
   },
@@ -113,7 +121,9 @@ export const tabRoutes: TabRouteConfig[] = [
   },
   {
     name: TabRoutes.NFT,
-    component: toFocusedLazy(NFTMarket),
+    component: toFocusedLazy(NFTMarket, {
+      rootTabName: TabRoutes.NFT,
+    }),
     tabBarIcon: (focused) => (focused ? 'PhotoSolid' : 'PhotoOutline'),
     translationId: 'title__nft',
     children: [
@@ -129,11 +139,17 @@ export const tabRoutes: TabRouteConfig[] = [
         name: HomeRoutes.NFTMarketCollectionScreen,
         component: NFTMarketCollectionScreen,
       },
+      {
+        name: HomeRoutes.NFTPNLScreen,
+        component: PNLDetailScreen,
+      },
     ],
   },
   {
     name: TabRoutes.Discover,
-    component: toFocusedLazy(DiscoverScreen),
+    component: toFocusedLazy(DiscoverScreen, {
+      rootTabName: TabRoutes.Discover,
+    }),
     tabBarIcon: (focused) => (focused ? 'CompassSolid' : 'CompassOutline'),
     translationId: 'title__explore',
     children: [
@@ -153,7 +169,9 @@ export const tabRoutes: TabRouteConfig[] = [
   },
   {
     name: TabRoutes.Me,
-    component: toFocusedLazy(MeScreen, { unmountWhenBlur: false }),
+    component: toFocusedLazy(MeScreen, {
+      rootTabName: TabRoutes.Me,
+    }),
     tabBarIcon: (focused) => (focused ? 'Bars4Solid' : 'Bars4Outline'),
     translationId: 'title__menu',
     children: [
@@ -211,7 +229,9 @@ if (process.env.NODE_ENV !== 'production') {
 
   tabRoutes.push({
     name: TabRoutes.Developer,
-    component: DevelopScreen,
+    component: toFocusedLazy(DevelopScreen, {
+      rootTabName: TabRoutes.Developer,
+    }),
     tabBarIcon: () => 'ChipOutline',
     translationId: 'form__dev_mode',
   });

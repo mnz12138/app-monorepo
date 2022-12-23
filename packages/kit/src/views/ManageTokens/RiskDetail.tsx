@@ -1,6 +1,7 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
 
 import {
@@ -19,14 +20,16 @@ import {
   useSafeAreaInsets,
 } from '@onekeyhq/components';
 import { tokenSecurityRiskItems } from '@onekeyhq/engine/src/managers/goplus';
-import { GoPlusTokenSecurity } from '@onekeyhq/engine/src/types/goplus';
+import type { GoPlusTokenSecurity } from '@onekeyhq/engine/src/types/goplus';
 import goPlus from '@onekeyhq/kit/assets/goPlus.png';
 import NoRisks from '@onekeyhq/kit/assets/NoRisks.png';
 
 import { openUrl } from '../../utils/openUrl';
 
 import { useTokenSecurityInfo } from './hooks';
-import { ManageTokenRoutes, ManageTokenRoutesParams } from './types';
+
+import type { ManageTokenRoutes, ManageTokenRoutesParams } from './types';
+import type { RouteProp } from '@react-navigation/native';
 
 type NavigationProps = RouteProp<
   ManageTokenRoutesParams,
@@ -100,7 +103,7 @@ const RiskDetail: FC = () => {
 
   const footer = useMemo(
     () => (
-      <VStack pb={`${insets.bottom}px`}>
+      <VStack pb={`${insets.bottom}px`} mt="8">
         <Divider />
         <Pressable onPress={linkToGoPlus}>
           <HStack alignItems="center" justifyContent="center" mt="4">
@@ -111,7 +114,7 @@ const RiskDetail: FC = () => {
         </Pressable>
       </VStack>
     ),
-    [insets],
+    [insets.bottom, linkToGoPlus],
   );
 
   const renderItem = useCallback(

@@ -2,18 +2,24 @@ import axios from 'axios';
 import BigNumber from 'bignumber.js';
 import qs from 'qs';
 
-import { IMPL_EVM, IMPL_STC, SEPERATOR } from '../constants';
+import {
+  IMPL_EVM,
+  IMPL_STC,
+  SEPERATOR,
+} from '@onekeyhq/shared/src/engine/engineConsts';
+
 import { getFiatEndpoint } from '../endpoint';
 import { getPresetNetworks, networkIsPreset } from '../presets';
-import {
+
+import { getAccountNameInfoByImpl, implToCoinTypes } from './impl';
+
+import type {
   AddEVMNetworkParams,
   BlockExplorer,
   DBNetwork,
   Network,
 } from '../types/network';
-import { IVaultSettings } from '../vaults/types';
-
-import { getAccountNameInfoByImpl, implToCoinTypes } from './impl';
+import type { IVaultSettings } from '../vaults/types';
 
 export type ChainListConfig = {
   name?: string;
@@ -88,7 +94,10 @@ function generateEIP3091(customExplorerURL?: string):
     u.pathname = `${base}block/{block}`;
     const block = u.toString().replace('%7Bblock%7D', '{block}');
 
-    u.pathname = `${base}transaction/{transaction}`;
+    // https://onekeyhq.atlassian.net/browse/OK-15390
+    u.pathname = `${base}${
+      u.hostname === 'www.gatescan.org' ? 'tx' : 'transaction'
+    }/{transaction}`;
     const transaction = u
       .toString()
       .replace('%7Btransaction%7D', '{transaction}');

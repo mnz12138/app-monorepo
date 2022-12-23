@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await */
 
-import { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
+import { AccountUtxo } from '@onekeyfe/js-sdk';
 import BigNumber from 'bignumber.js';
 import bs58check from 'bs58check';
 // @ts-expect-error
@@ -11,7 +10,7 @@ import coinSelect from 'coinselect';
 import coinSelectSplit from 'coinselect/split';
 import memoizee from 'memoizee';
 
-import {
+import type {
   IBlockBookTransaction,
   IEncodedTxBtc,
   IUTXOInput,
@@ -19,45 +18,49 @@ import {
   PartialTokenInfo,
   TxInput,
 } from '@onekeyhq/engine/src/vaults/utils/btcForkChain/types';
+import { COINTYPE_BTC } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_BTC } from '../../../constants';
-import { ExportedPrivateKeyCredential } from '../../../dbs/base';
 import {
   InsufficientBalance,
   InvalidAddress,
   NotImplemented,
   OneKeyInternalError,
 } from '../../../errors';
-import { DBUTXOAccount } from '../../../types/account';
 import { EVMDecodedTxType } from '../../impl/evm/decoder/types';
-import { KeyringBaseMock } from '../../keyring/KeyringBase';
-import { KeyringHdBase } from '../../keyring/KeyringHdBase';
 import {
+  IDecodedTxActionType,
+  IDecodedTxDirection,
+  IDecodedTxStatus,
+} from '../../types';
+import { VaultBase } from '../../VaultBase';
+
+import { Provider } from './provider';
+import { BlockBook } from './provider/blockbook';
+import { getAccountDefaultByPurpose, getBIP44Path } from './utils';
+
+import type { ExportedPrivateKeyCredential } from '../../../dbs/base';
+import type { DBUTXOAccount } from '../../../types/account';
+import type { KeyringBaseMock } from '../../keyring/KeyringBase';
+import type { KeyringHdBase } from '../../keyring/KeyringHdBase';
+import type {
   IApproveInfo,
   IDecodedTx,
   IDecodedTxActionNativeTransfer,
-  IDecodedTxActionType,
-  IDecodedTxDirection,
   IDecodedTxLegacy,
-  IDecodedTxStatus,
   IEncodedTx,
   IEncodedTxUpdateOptions,
   IFeeInfo,
   IFeeInfoUnit,
   IHistoryTx,
-  ISignedTx,
+  ISignedTxPro,
   ITransferInfo,
   IUnsignedTxPro,
   IVaultSettings,
 } from '../../types';
-import { IKeyringMapKey, VaultBase } from '../../VaultBase';
-
-import { Provider } from './provider';
-import { BlockBook } from './provider/blockbook';
-import { getAccountDefaultByPurpose } from './utils';
-
-import type { ArrayElement } from './types';
+import type { IKeyringMapKey } from '../../VaultBase';
+import type { BaseClient } from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 export default class VaultBtcFork extends VaultBase {
   keyringMap = {} as Record<IKeyringMapKey, typeof KeyringBaseMock>;
@@ -409,6 +412,12 @@ export default class VaultBtcFork extends VaultBase {
       outputs: outputs.map(({ value, address }) => ({
         address: address || dbAccount.address, // change amount
         value: value.toString(),
+        payload: address
+          ? undefined
+          : {
+              isCharge: true,
+              bip44Path: getBIP44Path(dbAccount, dbAccount.address),
+            },
       })),
       totalFee,
       totalFeeInNative,
@@ -449,9 +458,10 @@ export default class VaultBtcFork extends VaultBase {
         utxo: { txid: input.txid, vout: input.vout, value },
       });
     }
-    const outputsInUnsignedTx = outputs.map(({ address, value }) => ({
+    const outputsInUnsignedTx = outputs.map(({ address, value, payload }) => ({
       address,
       value: new BigNumber(value),
+      payload,
     }));
 
     const ret = {
@@ -492,7 +502,9 @@ export default class VaultBtcFork extends VaultBase {
     };
   }
 
-  override async broadcastTransaction(signedTx: ISignedTx): Promise<ISignedTx> {
+  override async broadcastTransaction(
+    signedTx: ISignedTxPro,
+  ): Promise<ISignedTxPro> {
     debugLogger.engine.info('broadcastTransaction START:', {
       rawTx: signedTx.rawTx,
     });
@@ -522,16 +534,24 @@ export default class VaultBtcFork extends VaultBase {
 
     const provider = await this.getProvider();
     const dbAccount = (await this.getDbAccount()) as DBUTXOAccount;
-    const { decimals, symbol } = await this.engine.getNetwork(this.networkId);
+    const { decimals, symbol, impl } = await this.engine.getNetwork(
+      this.networkId,
+    );
     const token = await this.engine.getNativeTokenInfo(this.networkId);
     let txs: Array<IBlockBookTransaction> = [];
     try {
       txs =
         (
-          (await provider.getAccount({
-            type: 'history',
-            xpub: dbAccount.xpub,
-          })) as { transactions: Array<IBlockBookTransaction> }
+          (await provider.getHistory(
+            {
+              type: 'history',
+              xpub: dbAccount.xpub,
+            },
+            impl,
+            dbAccount.address,
+            symbol,
+            decimals,
+          )) as { transactions: Array<IBlockBookTransaction> }
         ).transactions ?? [];
     } catch (e) {
       console.error(e);
@@ -546,47 +566,9 @@ export default class VaultBtcFork extends VaultBase {
           // No need to update.
           return null;
         }
-        const utxoFrom = tx.vin.map((input) => ({
-          address: input.isAddress ?? false ? input.addresses[0] : '',
-          balance: new BigNumber(input.value).shiftedBy(-decimals).toFixed(),
-          balanceValue: input.value,
-          symbol,
-          isMine: this.isMyTransaction(input, dbAccount.address),
-        }));
-        const utxoTo = tx.vout.map((output) => ({
-          address: output.isAddress ?? false ? output.addresses[0] : '',
-          balance: new BigNumber(output.value).shiftedBy(-decimals).toFixed(),
-          balanceValue: output.value,
-          symbol,
-          isMine: this.isMyTransaction(output, dbAccount.address),
-        }));
 
-        const totalOut = BigNumber.sum(
-          ...utxoFrom.map(({ balanceValue, isMine }) =>
-            isMine ? balanceValue : '0',
-          ),
-        );
-        const totalIn = BigNumber.sum(
-          ...utxoTo.map(({ balanceValue, isMine }) =>
-            isMine ? balanceValue : '0',
-          ),
-        );
-        let direction = IDecodedTxDirection.IN;
-        if (totalOut.gt(totalIn)) {
-          direction = utxoTo.every(({ isMine }) => isMine)
-            ? IDecodedTxDirection.SELF
-            : IDecodedTxDirection.OUT;
-        }
-        let amountValue = totalOut.minus(totalIn).abs();
-        if (
-          direction === IDecodedTxDirection.OUT &&
-          utxoFrom.every(({ isMine }) => isMine)
-        ) {
-          // IF the transaction's direction is out and all inputs are from
-          // current account, substract the fees from the net output amount
-          // to give an exact sending amount value.
-          amountValue = amountValue.minus(tx.fees);
-        }
+        const { direction, utxoFrom, utxoTo, from, to, amount, amountValue } =
+          tx;
 
         const decodedTx: IDecodedTx = {
           txid: tx.txid,
@@ -601,10 +583,12 @@ export default class VaultBtcFork extends VaultBase {
                 tokenInfo: token,
                 utxoFrom,
                 utxoTo,
-                from: utxoFrom.find((utxo) => !!utxo.address)?.address ?? '',
-                to: utxoTo.find((utxo) => !!utxo.address)?.address ?? '',
-                amount: amountValue.shiftedBy(-decimals).toFixed(),
-                amountValue: amountValue.toFixed(),
+                from,
+                // For out transaction, use first address as to.
+                // For in or self transaction, use first owned address as to.
+                to,
+                amount,
+                amountValue,
                 extraInfo: null,
               },
             },
@@ -637,18 +621,6 @@ export default class VaultBtcFork extends VaultBase {
       }
     });
     return (await Promise.all(promises)).filter(Boolean);
-  }
-
-  isMyTransaction(
-    item:
-      | ArrayElement<IBlockBookTransaction['vin']>
-      | ArrayElement<IBlockBookTransaction['vout']>,
-    accountAddress: string,
-  ) {
-    if ('isOwn' in item) {
-      return item.isOwn ?? false;
-    }
-    return item.addresses.some((address) => address === accountAddress);
   }
 
   collectUTXOs = memoizee(
@@ -708,5 +680,9 @@ export default class VaultBtcFork extends VaultBase {
     tokenAddresses: string[],
   ): Promise<Array<PartialTokenInfo | undefined>> {
     throw new NotImplemented();
+  }
+
+  override getPrivateKeyByCredential(credential: string) {
+    return bs58check.decode(credential);
   }
 }

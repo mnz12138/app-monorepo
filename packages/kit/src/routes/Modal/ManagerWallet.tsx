@@ -1,16 +1,14 @@
-import React from 'react';
-
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { useIsVerticalLayout } from '@onekeyhq/components';
 import ManagerWalletLocalValidationView from '@onekeyhq/kit/src/views/ManagerWallet/LocalValidationModal';
 import ModifyWalletEmojiView from '@onekeyhq/kit/src/views/ManagerWallet/ModifyWallet/emoji';
 import ModifyWalletNameView from '@onekeyhq/kit/src/views/ManagerWallet/ModifyWallet/name';
-
-import { ValidationFields } from '../../components/Protected/types';
-import { Avatar } from '../../utils/emojiUtils';
+import type { Avatar } from '@onekeyhq/shared/src/emojiUtils';
 
 import { buildModalStackNavigatorOptions } from './buildModalStackNavigatorOptions';
+
+import type { ValidationFields } from '../../components/Protected/types';
 
 export enum ManagerWalletModalRoutes {
   ManagerWalletModal = 'ManagerWalletModal',
@@ -76,4 +74,4 @@ const ManagerWalletModalStack = () => {
   );
 };
 
-export { ManagerWalletModalStack };
+export default ManagerWalletModalStack;

@@ -1,4 +1,5 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import type { FC } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useNavigation } from '@react-navigation/core';
 import B from 'bignumber.js';
@@ -18,7 +19,7 @@ import {
 } from '@onekeyhq/components';
 import { copyToClipboard } from '@onekeyhq/components/src/utils/ClipboardUtils';
 import { toFloat } from '@onekeyhq/engine/src/managers/revoke';
-import { Token as TokenType } from '@onekeyhq/engine/src/types/token';
+import type { Token as TokenType } from '@onekeyhq/engine/src/types/token';
 
 import { FormatCurrencyNumber } from '../../../components/Format';
 import { navigationRef } from '../../../provider/NavigationProvider';
@@ -29,10 +30,10 @@ import {
   useSpenderAppName,
   useUpdateAllowance,
 } from '../hooks';
-import showAllowanceDetailOverlay, {
-  ActionKey,
-} from '../Overlays/AllowanceDetail';
+import showAllowanceDetailOverlay from '../Overlays/AllowanceDetail';
 import { AssetType, RevokeRoutes } from '../types';
+
+import type { ActionKey } from '../Overlays/AllowanceDetail';
 
 type Props = {
   spender: string;

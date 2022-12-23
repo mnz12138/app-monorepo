@@ -2,19 +2,20 @@ import { networkList } from '@onekeyfe/network-list';
 import B from 'bignumber.js';
 import { uniq } from 'lodash';
 
-import { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 
-import { OnekeyNetwork } from '../presets/networkIds';
-import {
+import { GoPlusSupportApis } from '../types/goplus';
+
+import { fetchData } from './token';
+
+import type {
   GoPlusAddressSecurity,
   GoPlusDappContract,
   GoPlusDappSecurity,
   GoPlusPhishing,
-  GoPlusSupportApis,
   GoPlusTokenSecurity,
 } from '../types/goplus';
-
-import { fetchData } from './token';
 
 type CheckItemFunc = (item: any) => boolean;
 
@@ -275,6 +276,11 @@ export const fetchSecurityInfo = async <T>(
 export const isTrustToken = (info: GoPlusTokenSecurity) =>
   info?.trust_list === '1';
 
+const isDropedPermission = (info: GoPlusTokenSecurity) =>
+  info.owner_address === '0x0000000000000000000000000000000000000000' &&
+  info.can_take_back_ownership === '0' &&
+  info.hidden_owner === '0';
+
 export const getTokenRiskyItems = async (params: CheckParams) => {
   const info = await fetchSecurityInfo<GoPlusTokenSecurity>(params);
   if (!info) {
@@ -291,7 +297,7 @@ export const getTokenRiskyItems = async (params: CheckParams) => {
       items: safeItems,
     },
     { localeKey: 'danger', items: dangerItems },
-    { localeKey: 'warn', items: warnItems },
+    { localeKey: 'warn', items: isDropedPermission(info) ? [] : warnItems },
   ].map(({ localeKey, items }) =>
     uniq(items.filter(([k, func]) => func(info?.[k])).map(([k]) => k)).filter(
       // @ts-ignore

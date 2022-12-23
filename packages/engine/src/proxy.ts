@@ -4,81 +4,49 @@
 
 import { Buffer } from 'buffer';
 
-import {
-  encode as toCfxAddress,
-  decode as toEthAddress,
-} from '@conflux-dev/conflux-address-js';
 import { RestfulRequest } from '@onekeyfe/blockchain-libs/dist/basic/request/restful';
 import { ProviderController as BaseProviderController } from '@onekeyfe/blockchain-libs/dist/provider';
-import {
-  BaseClient,
-  BaseProvider,
-  ClientFilter,
-} from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { Geth } from '@onekeyfe/blockchain-libs/dist/provider/chains/eth/geth';
 import {
   N,
   sign,
   uncompressPublicKey,
+  verify,
 } from '@onekeyfe/blockchain-libs/dist/secret';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import { ChainInfo } from '@onekeyfe/blockchain-libs/dist/types/chain';
-import {
-  TransactionStatus,
-  TxInput,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import {
-  Signer as ISigner,
-  Verifier as IVerifier,
-} from '@onekeyfe/blockchain-libs/dist/types/secret';
+import { TransactionStatus } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import { web3Errors } from '@onekeyfe/cross-inpage-provider-errors';
 import BigNumber from 'bignumber.js';
-import { isNil } from 'lodash';
 
+import bufferUitls from '@onekeyhq/shared/src/bufferUitls';
 import {
   IMPL_ALGO,
   IMPL_BCH,
   IMPL_BTC,
-  IMPL_CFX,
-  IMPL_COSMOS,
   IMPL_DOGE,
-  IMPL_EVM,
   IMPL_LTC,
-  IMPL_NEAR,
-  IMPL_SOL,
-  IMPL_STC,
   IMPL_TBTC,
   SEPERATOR,
-} from './constants';
-import { NotImplemented, OneKeyInternalError } from './errors';
+} from '@onekeyhq/shared/src/engine/engineConsts';
+
+import { OneKeyInternalError } from './errors';
 import { getCurveByImpl } from './managers/impl';
 import { getPresetNetworks } from './presets';
-import {
-  AccountType,
-  DBAccount,
-  DBSimpleAccount,
-  DBUTXOAccount,
-  DBVariantAccount,
-} from './types/account';
+import { IMPL_MAPPINGS, fillUnsignedTx, fillUnsignedTxObj } from './proxyUtils';
 import { HistoryEntryStatus } from './types/history';
-import { DBNetwork, EIP1559Fee, Network } from './types/network';
-import { Token } from './types/token';
-import { baseAddressToAddress } from './vaults/impl/cosmos/sdk/address';
 
-// IMPL naming aren't necessarily the same.
-export const IMPL_MAPPINGS: Record<
-  string,
-  { implName?: string; defaultClient: string }
-> = {
-  [IMPL_EVM]: { implName: 'eth', defaultClient: 'Geth' },
-  [IMPL_SOL]: { defaultClient: 'Solana' },
-  [IMPL_ALGO]: { defaultClient: 'Algod' },
-  [IMPL_NEAR]: { defaultClient: 'NearCli' },
-  [IMPL_STC]: { defaultClient: 'StcClient' },
-  [IMPL_CFX]: { defaultClient: 'Conflux' },
-  [IMPL_BTC]: { defaultClient: 'BlockBook' },
-};
+import type { DBNetwork, EIP1559Fee } from './types/network';
+import type {
+  BaseClient,
+  BaseProvider,
+  ClientFilter,
+} from '@onekeyfe/blockchain-libs/dist/provider/abc';
+import type { ChainInfo } from '@onekeyfe/blockchain-libs/dist/types/chain';
+import type { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type {
+  Signer as ISigner,
+  Verifier as IVerifier,
+} from '@onekeyfe/blockchain-libs/dist/types/secret';
 
 type Curve = 'secp256k1' | 'ed25519';
 
@@ -131,127 +99,25 @@ function fromDBNetworkToChainInfo(dbNetwork: DBNetwork): ChainInfo {
   };
 }
 
-export function fillUnsignedTxObj({
-  network,
-  dbAccount,
-  to,
-  value,
-  valueOnChain,
-  token,
-  extra,
-  shiftFeeDecimals = false,
-}: {
-  network: Network;
-  dbAccount: DBAccount;
-  to: string;
-  value?: BigNumber;
-  valueOnChain?: string;
-  token?: Token;
-  extra?: { [key: string]: any };
-  shiftFeeDecimals?: boolean;
-}): UnsignedTx {
-  let valueOnChainBN = new BigNumber(0);
-  let tokenIdOnNetwork: string | undefined;
-  if (valueOnChain) {
-    valueOnChainBN = new BigNumber(valueOnChain);
-  } else if (!isNil(value)) {
-    valueOnChainBN = value;
-    if (typeof token !== 'undefined') {
-      valueOnChainBN = valueOnChainBN.shiftedBy(token.decimals);
-      tokenIdOnNetwork = token.tokenIdOnNetwork;
-    } else {
-      valueOnChainBN = valueOnChainBN.shiftedBy(network.decimals);
-    }
-  }
+export { fillUnsignedTxObj, fillUnsignedTx };
 
-  const { type, nonce, feeLimit, feePricePerUnit, ...payload } = extra as {
-    type?: string;
-    nonce?: number;
-    feeLimit?: BigNumber;
-    feePricePerUnit?: BigNumber;
-    [key: string]: any;
-  };
-  const { maxFeePerGas, maxPriorityFeePerGas } = payload as {
-    maxFeePerGas: string;
-    maxPriorityFeePerGas: string;
-  };
-  // EIP 1559
-  const eip1559 =
-    typeof maxFeePerGas === 'string' &&
-    typeof maxPriorityFeePerGas === 'string';
-  if (eip1559) {
-    let maxFeePerGasBN = new BigNumber(maxFeePerGas);
-    let maxPriorityFeePerGasBN = new BigNumber(maxPriorityFeePerGas);
-
-    if (shiftFeeDecimals) {
-      maxFeePerGasBN = maxFeePerGasBN.shiftedBy(network.feeDecimals);
-      maxPriorityFeePerGasBN = maxPriorityFeePerGasBN.shiftedBy(
-        network.feeDecimals,
-      );
-    }
-    payload.maxFeePerGas = maxFeePerGasBN;
-    payload.maxPriorityFeePerGas = maxPriorityFeePerGasBN;
-    payload.EIP1559Enabled = true;
-  }
-  const input: TxInput = {
-    address: dbAccount.address,
-    value: valueOnChainBN,
-    tokenAddress: tokenIdOnNetwork,
-  };
-  if (network.impl === IMPL_STC) {
-    input.publicKey = (dbAccount as DBSimpleAccount).pub;
-  }
-
-  let feePricePerUnitBN = feePricePerUnit;
-  if (shiftFeeDecimals) {
-    feePricePerUnitBN = feePricePerUnitBN?.shiftedBy(network.feeDecimals);
-  }
-  // TODO remove hack for eip1559 gasPrice=1
-  if (eip1559) {
-    feePricePerUnitBN = new BigNumber(1);
-  }
-
-  return {
-    inputs: [input],
-    outputs: [
-      {
-        address: to || '',
-        value: valueOnChainBN,
-        tokenAddress: tokenIdOnNetwork,
-      },
-    ],
-    type,
-    nonce,
-    feeLimit,
-    feePricePerUnit: feePricePerUnitBN,
-    payload,
-  };
+export interface IVerifierPro extends IVerifier {
+  verifySignature(params: {
+    publicKey: Buffer | Uint8Array | string; // hex string or Buffer
+    digest: Buffer | Uint8Array | string; // hex string or Buffer
+    signature: Buffer | Uint8Array | string; // hex string or Buffer
+  }): Promise<boolean>;
 }
 
-export function fillUnsignedTx(
-  network: Network,
-  dbAccount: DBAccount,
-  to: string,
-  value: BigNumber,
-  token?: Token,
-  extra?: { [key: string]: any },
-): UnsignedTx {
-  return fillUnsignedTxObj({
-    network,
-    dbAccount,
-    to,
-    value,
-    token,
-    extra,
-  });
-}
-
-class Verifier implements IVerifier {
+export class Verifier implements IVerifierPro {
   private uncompressedPublicKey: Buffer;
 
   private compressedPublicKey: Buffer;
 
+  curve: Curve;
+
   constructor(pub: string, curve: Curve) {
+    this.curve = curve;
     this.compressedPublicKey = Buffer.from(pub, 'hex');
     this.uncompressedPublicKey = uncompressPublicKey(
       curve,
@@ -269,13 +135,31 @@ class Verifier implements IVerifier {
     // Not used.
     return Promise.resolve(Buffer.from([]));
   }
+
+  verifySignature({
+    publicKey,
+    digest,
+    signature,
+  }: {
+    publicKey: Buffer | Uint8Array | string; // hex string or Buffer
+    digest: Buffer | Uint8Array | string; // hex string or Buffer
+    signature: Buffer | Uint8Array | string; // hex string or Buffer
+  }): Promise<boolean> {
+    const p = bufferUitls.toBuffer(publicKey);
+    const d = bufferUitls.toBuffer(digest);
+    const s = bufferUitls.toBuffer(signature);
+    const { curve } = this;
+    const result = verify(curve, p, d, s);
+    return Promise.resolve(result);
+  }
 }
 
+// @ts-ignore
 export class Signer extends Verifier implements ISigner {
   constructor(
     private encryptedPrivateKey: Buffer,
     private password: string,
-    private curve: Curve,
+    private override curve: Curve,
   ) {
     super(
       N(
@@ -427,85 +311,6 @@ class ProviderController extends BaseProviderController {
     );
   }
 
-  async addressFromBase(
-    networkId: string,
-    baseAddress: string,
-  ): Promise<string> {
-    const [impl, chainId] = networkId.split(SEPERATOR);
-    switch (impl) {
-      case IMPL_CFX:
-        return Promise.resolve(toCfxAddress(baseAddress, parseInt(chainId)));
-      case IMPL_COSMOS:
-        // eslint-disable-next-line no-case-declarations
-        const chainInfo = await this.getChainInfoByNetworkId(networkId);
-        return Promise.resolve(
-          baseAddressToAddress(
-            chainInfo.implOptions?.addressPrefix ?? 'cosmos',
-            baseAddress,
-          ),
-        );
-      default:
-        throw new NotImplemented();
-    }
-  }
-
-  addressToBase(networkId: string, address: string): Promise<string> {
-    const [impl] = networkId.split(SEPERATOR);
-    switch (impl) {
-      case IMPL_CFX:
-        return Promise.resolve(
-          `0x${toEthAddress(address).hexAddress.toString('hex')}`,
-        );
-      default:
-        throw new NotImplemented();
-    }
-  }
-
-  public async selectAccountAddress(
-    networkId: string,
-    dbAccount: DBAccount,
-  ): Promise<string> {
-    const [impl] = networkId.split(SEPERATOR);
-
-    let address;
-    switch (dbAccount.type) {
-      case AccountType.SIMPLE:
-        address = dbAccount.address;
-        break;
-      case AccountType.VARIANT:
-        address = ((dbAccount as DBVariantAccount).addresses || {})[networkId];
-        if (typeof address === 'undefined' || impl === IMPL_COSMOS) {
-          address = await this.addressFromBase(networkId, dbAccount.address);
-        }
-        break;
-      case AccountType.UTXO:
-        address = (dbAccount as DBUTXOAccount).xpub;
-        break;
-      default:
-        throw new NotImplemented();
-    }
-    return Promise.resolve(address);
-  }
-
-  async preSend(
-    network: Network,
-    dbAccount: DBAccount,
-    to: string,
-    value: BigNumber,
-    token?: Token,
-    extra?: { [key: string]: any },
-  ): Promise<BigNumber> {
-    dbAccount.address = await this.selectAccountAddress(network.id, dbAccount);
-    const unsignedTx = await this.buildUnsignedTx(
-      network.id,
-      fillUnsignedTx(network, dbAccount, to, value, token, extra),
-    );
-    if (typeof unsignedTx.feeLimit === 'undefined') {
-      throw new OneKeyInternalError('Failed to estimate gas limit.');
-    }
-    return unsignedTx.feeLimit;
-  }
-
   async getGasPrice(networkId: string): Promise<Array<BigNumber | EIP1559Fee>> {
     // TODO: move this into libs.
     const { chainId, EIP1559Enabled } =
@@ -516,6 +321,8 @@ class ProviderController extends BaseProviderController {
           `https://gas-api.metaswap.codefi.network/networks/${parseInt(
             chainId,
           )}/suggestedGasFees`,
+          {},
+          60 * 1000,
         );
         const { low, medium, high, estimatedBaseFee } = await request
           .get('')

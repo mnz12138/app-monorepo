@@ -1,5 +1,6 @@
 /* eslint-disable global-require */
-import React, { FC, useEffect, useState } from 'react';
+import type { FC } from 'react';
+import { useEffect, useState } from 'react';
 
 import * as SplashScreen from 'expo-splash-screen';
 // TODO: add .d.ts for react-native-animated-splash-screen
@@ -10,8 +11,6 @@ import useSWR from 'swr';
 import { Box, useThemeValue } from '@onekeyhq/components';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
-
-import { fetchCurrencies } from '../views/FiatPay/Service';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { serviceApp, serviceCronJob } = backgroundApiProxy;
@@ -25,8 +24,6 @@ const AppLoading: FC = ({ children }) => {
       refreshInterval: 5 * 60 * 1000,
     },
   );
-
-  useSWR(initDataReady ? 'currencies' : null, fetchCurrencies);
 
   const bgColor = useThemeValue('background-default');
 
@@ -60,6 +57,12 @@ const AppLoading: FC = ({ children }) => {
       setTimeout(() => img?.remove(), 10);
     }
   }, [initDataReady]);
+
+  global.$$onekeyPerfTrace?.log({
+    name: `AppLoading SplashScreen render: ${JSON.stringify({
+      initDataReady,
+    })}`,
+  });
 
   return (
     <Box flex={1} bg={bg}>

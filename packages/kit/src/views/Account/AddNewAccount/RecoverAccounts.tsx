@@ -1,17 +1,9 @@
 /* eslint-disable no-nested-ternary */
-import {
-  ComponentProps,
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import type { ComponentProps, FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
-import { ListRenderItemInfo } from 'react-native';
 
 import {
   Box,
@@ -36,11 +28,9 @@ import type {
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
 import { useRuntime } from '@onekeyhq/kit/src/hooks/redux';
 import useOpenBlockBrowser from '@onekeyhq/kit/src/hooks/useOpenBlockBrowser';
-import {
-  CreateAccountModalRoutes,
-  CreateAccountRoutesParams,
-} from '@onekeyhq/kit/src/routes';
-import { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
+import type { CreateAccountRoutesParams } from '@onekeyhq/kit/src/routes';
+import { CreateAccountModalRoutes } from '@onekeyhq/kit/src/routes';
+import type { ModalScreenProps } from '@onekeyhq/kit/src/routes/types';
 import { getTimeStamp } from '@onekeyhq/kit/src/utils/helper';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
@@ -53,6 +43,8 @@ import type {
   AdvancedValues,
   RecoverAccountType as RecoverAccountConfirmType,
 } from './types';
+import type { RouteProp } from '@react-navigation/native';
+import type { ListRenderItemInfo } from 'react-native';
 
 type NavigationProps = ModalScreenProps<CreateAccountRoutesParams>;
 
@@ -337,6 +329,7 @@ const RecoverAccounts: FC = () => {
   const activeAccounts = useRef<Account[]>([]);
   const obj = useState(() => {
     let resolve: () => void = () => {};
+    // eslint-disable-next-line no-promise-executor-return
     const p = new Promise<void>((fn) => (resolve = fn));
     return { p, resolve };
   })[0];
@@ -606,6 +599,17 @@ const RecoverAccounts: FC = () => {
     [depDataInit, isLoading, pendRefreshData],
   );
 
+  const itemSeparatorComponent = useCallback(
+    () => (
+      <>
+        {!config.showPathAndLink && platformEnv.isNative ? (
+          <Box h="8px" />
+        ) : undefined}
+      </>
+    ),
+    [config.showPathAndLink],
+  );
+
   return (
     <Modal
       height="640px"
@@ -694,13 +698,7 @@ const RecoverAccounts: FC = () => {
               keyExtractor={(item: RecoverAccountType) => `${item.index}`}
               extraData={isAllSelected}
               showsVerticalScrollIndicator={false}
-              ItemSeparatorComponent={() => (
-                <>
-                  {!config.showPathAndLink && platformEnv.isNative ? (
-                    <Box h="8px" />
-                  ) : undefined}
-                </>
-              )}
+              ItemSeparatorComponent={itemSeparatorComponent}
             />
           )}
           <ListTableFooter

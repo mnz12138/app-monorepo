@@ -1,35 +1,38 @@
-import React, { ComponentProps, FC, useCallback } from 'react';
+import type { ComponentProps, FC } from 'react';
+import { useCallback } from 'react';
 
 import { useIntl } from 'react-intl';
 
 import {
   Box,
+  CustomSkeleton,
   Icon,
   NumberInput,
   Pressable,
   Typography,
   useToast,
 } from '@onekeyhq/components';
-import { Account } from '@onekeyhq/engine/src/types/account';
+import type { Account } from '@onekeyhq/engine/src/types/account';
 
 import backgroundApiProxy from '../../../../background/instance/backgroundApiProxy';
 import { FormatCurrency } from '../../../../components/Format';
 import { useCreateAccountInWallet } from '../../../../components/NetworkAccountSelector/hooks/useCreateAccountInWallet';
 import {
   useActiveWalletAccount,
+  useAppSelector,
   useNavigation,
   useNetworkSimple,
 } from '../../../../hooks';
 import { ModalRoutes, RootRoutes } from '../../../../routes/routesEnum';
 import { setSendingAccount } from '../../../../store/reducers/swap';
-import { Token as TokenType } from '../../../../store/typings';
 import { tokenReservedValues } from '../../config';
-import { useSwapQuoteCallback } from '../../hooks/useSwap';
 import { useTokenBalance, useTokenPrice } from '../../hooks/useSwapTokenUtils';
 import { SwapRoutes } from '../../typings';
 import { formatAmount } from '../../utils';
 import { NetworkName } from '../NetworkName';
 import { TokenDisplay } from '../TokenDisplay';
+
+import type { Token as TokenType } from '../../../../store/typings';
 
 type TokenInputProps = {
   type: 'INPUT' | 'OUTPUT';
@@ -54,7 +57,6 @@ const TokenInputSendingAccount: FC<TokenAccountProps> = ({
 }) => {
   const intl = useIntl();
   const navigation = useNavigation();
-  const onSwapQuote = useSwapQuoteCallback();
   const { walletId } = useActiveWalletAccount();
 
   const onPickAccount = useCallback(() => {
@@ -66,12 +68,11 @@ const TokenInputSendingAccount: FC<TokenAccountProps> = ({
           networkId: token?.networkId,
           onSelected: (acc) => {
             backgroundApiProxy.dispatch(setSendingAccount(acc));
-            onSwapQuote();
           },
         },
       },
     });
-  }, [token, onSwapQuote, navigation]);
+  }, [token, navigation]);
 
   const { createAccount } = useCreateAccountInWallet({
     networkId: token?.networkId,
@@ -148,6 +149,8 @@ const TokenInput: FC<TokenInputProps> = ({
   const tokenNetwork = useNetworkSimple(token?.networkId);
 
   const balance = useTokenBalance(token, account?.id);
+  const loading = useAppSelector((s) => s.swap.loading);
+  const independentField = useAppSelector((s) => s.swap.independentField);
   const price = useTokenPrice(token);
   const value = balance ?? '0';
   const onMax = useCallback(() => {
@@ -221,7 +224,7 @@ const TokenInput: FC<TokenInputProps> = ({
           display="flex"
           flexDirection="row"
           justifyContent="space-between"
-          alignItems="center"
+          alignItems="flex-start"
           mt="1"
         >
           <Pressable
@@ -248,38 +251,44 @@ const TokenInput: FC<TokenInputProps> = ({
               </Box>
             )}
           </Pressable>
-          <Box
-            flex="1"
-            flexDirection="row"
-            h="full"
-            justifyContent="flex-end"
-            position="relative"
-          >
-            <Box position="absolute" w="full" top="0" right="0">
-              <NumberInput
-                w="full"
-                h="auto"
-                borderWidth={0}
-                placeholder="0.00"
-                fontSize={24}
-                fontWeight="700"
-                fontFamily="PlusJakartaSans-Bold"
-                bg="transparent"
-                _disabled={{ bg: 'transparent' }}
-                _hover={{ bg: 'transparent' }}
-                _focus={{ bg: 'transparent' }}
-                value={inputValue}
-                borderRadius={0}
-                onChangeText={onChange}
-                pb="12"
-                focusOutlineColor="transparent"
-                // py="1"
-                pr="2"
-                textAlign="right"
-                isDisabled={isDisabled}
-                rightCustomElement={null}
-              />
-            </Box>
+          <Box flex="1" h="full" position="relative">
+            {independentField === 'OUTPUT' && loading ? (
+              <Box
+                h="full"
+                flexDirection="row"
+                justifyContent="flex-end"
+                alignItems="center"
+              >
+                <Box h="4" width="24" borderRadius="2px" overflow="hidden">
+                  <CustomSkeleton />
+                </Box>
+              </Box>
+            ) : (
+              <Box position="absolute" w="full" top="0" right="0">
+                <NumberInput
+                  w="full"
+                  h="auto"
+                  borderWidth={0}
+                  placeholder="0.00"
+                  fontSize={24}
+                  fontWeight="600"
+                  bg="transparent"
+                  _disabled={{ bg: 'transparent' }}
+                  _hover={{ bg: 'transparent' }}
+                  _focus={{ bg: 'transparent' }}
+                  value={inputValue}
+                  borderRadius={0}
+                  onChangeText={onChange}
+                  pb="12"
+                  focusOutlineColor="transparent"
+                  // py="1"
+                  pr="2"
+                  textAlign="right"
+                  isDisabled={isDisabled}
+                  rightCustomElement={null}
+                />
+              </Box>
+            )}
           </Box>
         </Box>
         <Box

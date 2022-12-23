@@ -1,11 +1,9 @@
 /* eslint-disable max-classes-per-file */
 import { HardwareErrorCode } from '@onekeyfe/hd-shared';
 
-import { LocaleIds } from '@onekeyhq/components/src/locale';
-import {
-  OneKeyHardwareError,
-  OneKeyHardwareErrorPayload,
-} from '@onekeyhq/engine/src/errors';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { OneKeyHardwareErrorPayload } from '@onekeyhq/engine/src/errors';
+import { OneKeyHardwareError } from '@onekeyhq/engine/src/errors';
 
 export enum CustomOneKeyHardwareError {
   NeedOneKeyBridge = 3030,

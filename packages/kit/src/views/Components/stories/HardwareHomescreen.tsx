@@ -1,4 +1,5 @@
-import React, { FC, useEffect, useState } from 'react';
+import type { FC } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import {
   Box,
@@ -15,7 +16,7 @@ import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import { useNavigationBack } from '../../../hooks/useAppNavigation';
 
-type DataItem = { name: string; staticPath: any; hex: string };
+type DataItem = { name: string; staticPath: any };
 
 const GenerateHomescreen: FC = () => {
   const [data, setData] = useState<DataItem[]>([]);
@@ -110,4 +111,4 @@ const HomescreenSetting = () => {
     </ScrollView>
   );
 };
-export default React.memo(HomescreenSetting);
+export default memo(HomescreenSetting);

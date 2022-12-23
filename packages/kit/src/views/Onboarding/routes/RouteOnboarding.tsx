@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootSiblingParent } from 'react-native-root-siblings';
@@ -16,7 +16,8 @@ import BackupsList from '../screens/RestoreFromCloud/BackupsList';
 import Welcome from '../screens/Welcome';
 
 import { EOnboardingRoutes } from './enums';
-import { IOnboardingRoutesParams } from './types';
+
+import type { IOnboardingRoutesParams } from './types';
 
 export const stackScreenList = [
   {
@@ -64,7 +65,7 @@ export const stackScreenList = [
 export const StackNavigator =
   createNativeStackNavigator<IOnboardingRoutesParams>();
 
-export function RouteOnboarding() {
+export default function RouteOnboarding() {
   const stackScreens = useMemo(
     () =>
       stackScreenList.map((stack) => (

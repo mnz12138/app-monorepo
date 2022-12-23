@@ -1,10 +1,8 @@
-import React from 'react';
-
 import { useIntl } from 'react-intl';
 
 import { Alert, Center, Modal, Text, VStack } from '@onekeyhq/components';
+import type { IDappSourceInfo } from '@onekeyhq/shared/types';
 
-import { IDappSourceInfo } from '../../background/IBackgroundApi';
 import useDappApproveAction from '../../hooks/useDappApproveAction';
 import useDappParams from '../../hooks/useDappParams';
 

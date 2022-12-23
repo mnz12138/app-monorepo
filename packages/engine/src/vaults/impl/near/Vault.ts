@@ -1,16 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await, camelcase, @typescript-eslint/naming-convention */
-import {
-  NearCli,
-  Provider as NearProvider,
-} from '@onekeyfe/blockchain-libs/dist/provider/chains/near';
-import { NearAccessKey } from '@onekeyfe/blockchain-libs/dist/provider/chains/near/nearcli';
+import { NearCli } from '@onekeyfe/blockchain-libs/dist/provider/chains/near';
 import { ed25519 } from '@onekeyfe/blockchain-libs/dist/secret/curves';
 import { decrypt } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import {
-  PartialTokenInfo,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
+import { UnsignedTx } from '@onekeyfe/blockchain-libs/dist/types/provider';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
 import { last } from 'lodash';
@@ -20,25 +12,11 @@ import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
 import { NotImplemented, OneKeyInternalError } from '../../../errors';
 import { extractResponseError, fillUnsignedTx } from '../../../proxy';
-import { DBAccount, DBVariantAccount } from '../../../types/account';
 import { TxStatus } from '../../../types/covalent';
-import { Token } from '../../../types/token';
-import { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
 import {
-  IApproveInfo,
-  IDecodedTx,
-  IDecodedTxAction,
   IDecodedTxActionType,
   IDecodedTxDirection,
-  IDecodedTxLegacy,
   IDecodedTxStatus,
-  IEncodedTx,
-  IEncodedTxUpdateOptions,
-  IEncodedTxUpdatePayloadTransfer,
-  IFeeInfo,
-  IFeeInfoUnit,
-  ITransferInfo,
-  IUnsignedTxPro,
 } from '../../types';
 import { VaultBase } from '../../VaultBase';
 import {
@@ -52,7 +30,6 @@ import { KeyringHd } from './KeyringHd';
 import { KeyringImported } from './KeyringImported';
 import { KeyringWatching } from './KeyringWatching';
 import settings from './settings';
-import { INearAccountStorageBalance } from './types';
 import {
   BN,
   FT_MINIMUM_STORAGE_BALANCE_LARGE,
@@ -67,6 +44,28 @@ import {
   parseJsonFromRawResponse,
   serializeTransaction,
 } from './utils';
+
+import type { DBVariantAccount } from '../../../types/account';
+import type { Token } from '../../../types/token';
+import type { KeyringSoftwareBase } from '../../keyring/KeyringSoftwareBase';
+import type {
+  IApproveInfo,
+  IDecodedTx,
+  IDecodedTxAction,
+  IDecodedTxLegacy,
+  IEncodedTx,
+  IEncodedTxUpdateOptions,
+  IEncodedTxUpdatePayloadTransfer,
+  IFeeInfo,
+  IFeeInfoUnit,
+  ITransferInfo,
+  IUnsignedTxPro,
+} from '../../types';
+import type { INearAccountStorageBalance } from './types';
+import type { Provider as NearProvider } from '@onekeyfe/blockchain-libs/dist/provider/chains/near';
+import type { NearAccessKey } from '@onekeyfe/blockchain-libs/dist/provider/chains/near/nearcli';
+import type { PartialTokenInfo } from '@onekeyfe/blockchain-libs/dist/types/provider';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 // TODO extends evm/Vault
 export default class Vault extends VaultBase {
@@ -121,8 +120,7 @@ export default class Vault extends VaultBase {
 
   // TODO rename to prop get client();
   async _getNearCli(): Promise<NearCli> {
-    const nearCli2 = await (this.engineProvider as NearProvider).nearCli;
-
+    // const nearCli2 = await (this.engineProvider as NearProvider).nearCli;
     const { rpcURL } = await this.getNetwork();
     const nearCli = await this._createNearCli(rpcURL, this.networkId);
     return nearCli;
@@ -137,13 +135,14 @@ export default class Vault extends VaultBase {
   } = {}): Promise<string> {
     const dbAccount = (await this.getDbAccount()) as DBVariantAccount;
 
-    const verifier = this.engine.providerManager.getVerifier(
-      this.networkId,
-      // Before commit a7430c1038763d8d7f51e7ddfe1284e3e0bcc87c, pubkey was stored
+    const pub = // Before commit a7430c1038763d8d7f51e7ddfe1284e3e0bcc87c, pubkey was stored
       // in hexstring, afterwards it is stored using encoded format.
       dbAccount.pub.startsWith('ed25519:')
         ? baseDecode(dbAccount.pub.split(':')[1]).toString('hex')
-        : dbAccount.pub,
+        : dbAccount.pub;
+    const verifier = this.engine.providerManager.getVerifier(
+      this.networkId,
+      pub,
     );
     const pubKeyBuffer = await verifier.getPubkey(true);
 
@@ -361,7 +360,7 @@ export default class Vault extends VaultBase {
     transferInfo: ITransferInfo,
   ): Promise<string> {
     // TODO check dbAccount address match transferInfo.from
-    const dbAccount = (await this.getDbAccount()) as DBVariantAccount;
+    // const dbAccount = (await this.getDbAccount()) as DBVariantAccount;
 
     const actions = [];
 
@@ -727,5 +726,15 @@ export default class Vault extends VaultBase {
     const start = performance.now();
     const { blockNumber: latestBlock } = await cli.getBestBlock();
     return { responseTime: Math.floor(performance.now() - start), latestBlock };
+  }
+
+  override getPrivateKeyByCredential(credential: string) {
+    let privateKey;
+    const [prefix, encoded] = credential.split(':');
+    const decodedPrivateKey = Buffer.from(baseDecode(encoded));
+    if (prefix === 'ed25519' && decodedPrivateKey.length === 64) {
+      privateKey = decodedPrivateKey.slice(0, 32);
+    }
+    return privateKey;
   }
 }

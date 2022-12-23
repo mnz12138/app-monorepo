@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/require-await, max-classes-per-file */
+import { SEPERATOR } from '@onekeyhq/shared/src/engine/engineConsts';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
-import { IMPL_CFX, SEPERATOR } from '../constants';
-import { getWalletIdFromAccountId } from '../managers/account';
-import { AccountType, DBAccount, DBVariantAccount } from '../types/account';
-import { Network } from '../types/network';
-
-import { IVaultFactoryOptions } from './types';
+import { NotImplemented } from '../errors';
+import {
+  getWalletIdFromAccountId,
+  isAccountCompatibleWithNetwork,
+} from '../managers/account';
+import { AccountType } from '../types/account';
 
 import type { Engine } from '../index';
-import type { IVaultOptions } from './types';
+import type { DBAccount, DBVariantAccount } from '../types/account';
+import type { Network } from '../types/network';
+import type { IVaultFactoryOptions, IVaultOptions } from './types';
 
 export class VaultContextBase {
   constructor(options: IVaultFactoryOptions) {
@@ -69,7 +72,7 @@ export class VaultContext extends VaultContextBase {
     let { address, type } = this._dbAccount;
     if (
       type === AccountType.VARIANT &&
-      (await this.getNetworkImpl()) !== IMPL_CFX
+      isAccountCompatibleWithNetwork(this.accountId, this.networkId)
     ) {
       const accountAddress = ((this._dbAccount as DBVariantAccount).addresses ||
         {})[this.networkId];
@@ -81,10 +84,7 @@ export class VaultContext extends VaultContextBase {
           return this._dbAccount;
         }
 
-        address = await this.engine.providerManager.addressFromBase(
-          this.networkId,
-          address,
-        );
+        address = await this.addressFromBase(address);
       }
     }
 
@@ -100,6 +100,14 @@ export class VaultContext extends VaultContextBase {
 
   async getAccountAddress() {
     return (await this.getDbAccount()).address;
+  }
+
+  async addressFromBase(baseAddress: string): Promise<string> {
+    throw new NotImplemented();
+  }
+
+  async addressToBase(address: string): Promise<string> {
+    throw new NotImplemented();
   }
 
   _network!: Network;

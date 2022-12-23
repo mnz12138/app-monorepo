@@ -1,9 +1,9 @@
-import React, { ComponentProps, useCallback, useMemo } from 'react';
+import type { ComponentProps } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/core';
 import BigNumber from 'bignumber.js';
 import natsort from 'natsort';
-import { FlatListProps } from 'react-native';
 
 import {
   Divider,
@@ -13,21 +13,20 @@ import {
 } from '@onekeyhq/components';
 import { Tabs } from '@onekeyhq/components/src/CollapsibleTabView';
 import type { Token as TokenType } from '@onekeyhq/engine/src/types/token';
-import {
-  EVMDecodedItem,
-  EVMDecodedTxType,
-} from '@onekeyhq/engine/src/vaults/impl/evm/decoder/types';
+import type { EVMDecodedItem } from '@onekeyhq/engine/src/vaults/impl/evm/decoder/types';
+import { EVMDecodedTxType } from '@onekeyhq/engine/src/vaults/impl/evm/decoder/types';
 import { useManageTokensOfAccount } from '@onekeyhq/kit/src/hooks/useManageTokens';
-import {
-  HomeRoutes,
+import type {
   HomeRoutesParams,
   RootRoutes,
   RootRoutesParams,
 } from '@onekeyhq/kit/src/routes/types';
+import { HomeRoutes } from '@onekeyhq/kit/src/routes/types';
+import { MAX_PAGE_CONTAINER_WIDTH } from '@onekeyhq/shared/src/config/appConfig';
 
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
-import { MAX_PAGE_CONTAINER_WIDTH } from '../../../config';
 import { useActiveSideAccount, useAppSelector } from '../../../hooks';
+import { useManageTokenprices } from '../../../hooks/useManegeTokenPrice';
 import { getTokenValues } from '../../../utils/priceUtils';
 
 import AssetsListHeader from './AssetsListHeader';
@@ -36,6 +35,7 @@ import AssetsListSkeleton from './Skeleton';
 import TokenCell from './TokenCell';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { FlatListProps } from 'react-native';
 
 type NavigationProps = NativeStackNavigationProp<
   RootRoutesParams,
@@ -73,20 +73,27 @@ function AssetsList({
 }: IAssetsListProps) {
   const isVerticalLayout = useIsVerticalLayout();
   const hideRiskTokens = useAppSelector((s) => s.settings.hideRiskTokens);
-  const { accountTokens, balances, prices, loading } = useManageTokensOfAccount(
-    { accountId, networkId },
-  );
+  const { accountTokens, balances, loading } = useManageTokensOfAccount({
+    accountId,
+    networkId,
+  });
 
   const { account, network } = useActiveSideAccount({
     accountId,
     networkId,
   });
+  const { prices } = useManageTokenprices({ networkId, accountId });
+
   const navigation = useNavigation<NavigationProps>();
+  const vsCurrency = useAppSelector((s) => s.settings.selectedFiatMoneySymbol);
   const valueSortedTokens = useMemo(() => {
     const tokenValues = new Map<TokenType, BigNumber>();
     const sortedTokens = accountTokens
       .filter((t) => {
-        if (t.tokenIdOnNetwork && !prices[t.tokenIdOnNetwork]) {
+        const priceId = `${networkId}${
+          t.tokenIdOnNetwork ? `-${t.tokenIdOnNetwork}` : ''
+        }`;
+        if (t.tokenIdOnNetwork && !prices?.[priceId]) {
           if (hideSmallBalance) {
             return false;
           }
@@ -97,6 +104,7 @@ function AssetsList({
           tokens: [t],
           prices,
           balances,
+          vsCurrency,
         });
         if (hideSmallBalance && v.isLessThan(1)) {
           return false;
@@ -105,30 +113,39 @@ function AssetsList({
         return true;
       })
       .filter((t) => !hideRiskTokens || !t.security)
-      .sort(
-        (a, b) =>
-          // By value
+      .sort((a, b) => {
+        const priceIda = `${networkId}${
+          a.tokenIdOnNetwork ? `-${a.tokenIdOnNetwork}` : ''
+        }`;
+        const priceIdb = `${networkId}${
+          b.tokenIdOnNetwork ? `-${b.tokenIdOnNetwork}` : ''
+        }`;
+        // By value
+        return (
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tokenValues.get(b)!.comparedTo(tokenValues.get(a)!) ||
           // By price
-          new BigNumber(prices[b.tokenIdOnNetwork || 'main'] || 0).comparedTo(
-            new BigNumber(prices[a.tokenIdOnNetwork || 'main'] || 0),
+          new BigNumber(prices?.[priceIdb]?.[vsCurrency] || 0).comparedTo(
+            new BigNumber(prices?.[priceIda]?.[vsCurrency] || 0),
           ) ||
           // By native token
           (b.isNative ? 1 : 0) ||
           (a.isNative ? -1 : 0) ||
           // By name
-          natsort({ insensitive: true })(a.name, b.name),
-      );
+          natsort({ insensitive: true })(a.name, b.name)
+        );
+      });
 
     return limitSize ? sortedTokens.slice(0, limitSize) : sortedTokens;
   }, [
     accountTokens,
+    limitSize,
+    networkId,
+    prices,
     balances,
+    vsCurrency,
     hideSmallBalance,
     hideRiskTokens,
-    limitSize,
-    prices,
   ]);
 
   const { size } = useUserDevice();
@@ -160,9 +177,11 @@ function AssetsList({
       token={item}
       borderTopRadius={!flatStyle && showRoundTop && index === 0 ? '12px' : 0}
       borderRadius={
+        // eslint-disable-next-line no-unsafe-optional-chaining
         !flatStyle && index === valueSortedTokens?.length - 1 ? '12px' : '0px'
       }
       borderTopWidth={!flatStyle && showRoundTop && index === 0 ? 1 : 0}
+      // eslint-disable-next-line no-unsafe-optional-chaining
       borderBottomWidth={index === valueSortedTokens?.length - 1 ? 1 : 0}
       borderColor={flatStyle ? 'transparent' : 'border-subdued'}
       onPress={() => {
@@ -224,7 +243,8 @@ function AssetsList({
       ListEmptyComponent={
         loading
           ? AssetsListSkeleton
-          : () => <EmptyListOfAccount network={network} />
+          : // eslint-disable-next-line react/no-unstable-nested-components
+            () => <EmptyListOfAccount network={network} />
       }
       ListFooterComponent={ListFooterComponent}
       keyExtractor={(_item: TokenType) => _item.id}

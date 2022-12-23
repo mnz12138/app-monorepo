@@ -1,26 +1,27 @@
 /* eslint no-unused-vars: ["warn", { "argsIgnorePattern": "^_" }] */
 /* eslint @typescript-eslint/no-unused-vars: ["warn", { "argsIgnorePattern": "^_" }] */
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 import * as nearApiJs from 'near-api-js';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import { COINTYPE_NEAR as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_NEAR as COIN_TYPE } from '../../../constants';
 import { NotImplemented, OneKeyHardwareError } from '../../../errors';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
 
 import { baseEncode, serializeTransaction } from './utils';
 
+import type { DBSimpleAccount } from '../../../types/account';
 import type {
   IGetAddressParams,
   IPrepareHardwareAccountsParams,
   ISignCredentialOptions,
 } from '../../types';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'`;
 
@@ -72,7 +73,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       };
     }
 
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 
   override signMessage(
@@ -110,7 +111,7 @@ export class KeyringHardware extends KeyringHardwareBase {
     }
     if (!addressesResponse.success) {
       debugLogger.common.error(addressesResponse.payload);
-      throw deviceUtils.convertDeviceError(addressesResponse.payload);
+      throw convertDeviceError(addressesResponse.payload);
     }
 
     return addressesResponse.payload
@@ -140,6 +141,6 @@ export class KeyringHardware extends KeyringHardwareBase {
     if (response.success && !!response.payload?.address) {
       return correctHardwareAddressRet(response.payload.address);
     }
-    throw deviceUtils.convertDeviceError(response.payload);
+    throw convertDeviceError(response.payload);
   }
 }

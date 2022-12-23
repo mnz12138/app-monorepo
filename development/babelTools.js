@@ -70,7 +70,6 @@ function normalizeConfig({ platform, config }) {
     'ONEKEY_PLATFORM',
     'EXT_CHANNEL',
     'ANDROID_CHANNEL',
-    'CLOUNDINARY_NAME',
     'COVALENT_KEY',
     'MOONPAY_KEY',
     'HARDWARE_SDK_CONNECT_SRC',
@@ -122,7 +121,9 @@ function normalizeConfig({ platform, config }) {
   // console.log('babelToolsConfig > moduleResolver: ', moduleResolver);
 
   // https://babeljs.io/docs/en/options#no-targets
-  config.targets = 'defaults';
+  if (!config.targets) {
+    config.targets = 'defaults';
+  }
 
   // https://babeljs.io/docs/en/assumptions
   config.assumptions = {

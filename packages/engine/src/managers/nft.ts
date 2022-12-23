@@ -1,19 +1,18 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import axios from 'axios';
 
-import {
+import type {
   Collection,
   NFTAsset,
-  NFTChainMap,
   NFTServiceResp,
-  NFTSymbolMap,
   NFTTransaction,
 } from '@onekeyhq/engine/src/types/nft';
+import { NFTChainMap, NFTSymbolMap } from '@onekeyhq/engine/src/types/nft';
 import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
 
 import simpleDb from '../dbs/simple/simpleDb';
 import { getFiatEndpoint } from '../endpoint';
-import { OnekeyNetwork } from '../presets/networkIds';
 import {
   Erc1155MethodSelectors,
   Erc721MethodSelectors,
@@ -120,11 +119,15 @@ export const getNFTSymbolPrice = async (networkId: string) => {
     return null;
   }
 
-  const prices = await backgroundApiProxy.serviceToken.getPrices({
+  // const prices = await backgroundApiProxy.serviceToken.getPrices({
+  //   networkId,
+  //   tokenIds: [tokenId],
+  // });
+  // return prices?.[tokenId];
+  const price = await backgroundApiProxy.servicePrice.getSimpleTokenPrice({
     networkId,
-    tokenIds: [tokenId],
   });
-  return prices?.[tokenId];
+  return price;
 };
 
 function mergeLocalAsset({

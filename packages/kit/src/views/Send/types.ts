@@ -1,6 +1,6 @@
-import React from 'react';
+import type { ReactElement } from 'react';
 
-import { ModalProps } from '@onekeyhq/components/src/Modal';
+import type { ModalProps } from '@onekeyhq/components/src/Modal';
 import type { IBaseExternalAccountInfo } from '@onekeyhq/engine/src/dbs/simple/entity/SimpleDbEntityWalletConnect';
 import type { Account } from '@onekeyhq/engine/src/types/account';
 import type { Network } from '@onekeyhq/engine/src/types/network';
@@ -9,26 +9,23 @@ import type { Token } from '@onekeyhq/engine/src/types/token';
 import type { IUnsignedMessageEvm } from '@onekeyhq/engine/src/vaults/impl/evm/Vault';
 import type {
   IDecodedTx,
+  IDecodedTxLegacy,
   IEncodedTx,
+  IFeeInfoPayload,
   IFeeInfoSelected,
   INFTInfo,
-  ISignedTx,
+  ISignedTxPro,
   IStakeInfo,
   ISwapInfo,
   ITransferInfo,
 } from '@onekeyhq/engine/src/vaults/types';
-import {
-  IDecodedTxLegacy,
-  IFeeInfoPayload,
-} from '@onekeyhq/engine/src/vaults/types';
-
-import { InjectedConnectorInfo } from '../ExternalAccount/injectedConnectors';
+import type { IDappSourceInfo } from '@onekeyhq/shared/types';
 
 import { SendRoutes } from './enums';
 
-import type { IDappSourceInfo } from '../../background/IBackgroundApi';
 import type { WalletService } from '../../components/WalletConnect/types';
 import type { WalletConnectClientForDapp } from '../../components/WalletConnect/WalletConnectClientForDapp';
+import type { InjectedConnectorInfo } from '../ExternalAccount/injectedConnectors';
 import type { SwapQuoteTx } from '../Swap/typings';
 import type { IWalletConnectSession } from '@walletconnect/types';
 
@@ -100,7 +97,7 @@ export type SendConfirmPayload =
   | TransferSendParamsPayload // ITransferInfo
   | SwapQuoteTx;
 export type SendConfirmOnSuccessData = {
-  signedTx?: ISignedTx;
+  signedTx?: ISignedTxPro;
   encodedTx?: IEncodedTx | null;
   decodedTx?: IDecodedTx | null;
 };
@@ -124,7 +121,7 @@ export type SendConfirmParams = SendConfirmSharedParams & {
   payloadType?: string; // TODO remove
   payload?: SendConfirmPayload; // use payload.payloadType // TODO remove
   payloadInfo?: SendConfirmPayloadInfo;
-  onSuccess?: (tx: ISignedTx, data?: SendConfirmOnSuccessData) => void;
+  onSuccess?: (tx: ISignedTxPro, data?: SendConfirmOnSuccessData) => void;
   onFail?: (error: Error) => void;
   sourceInfo?: IDappSourceInfo;
   // TODO remove, use resendActionInfo instead
@@ -247,7 +244,7 @@ export type ISignMessageConfirmViewProps = ModalProps & {
   unsignedMessage: IUnsignedMessageEvm;
   confirmDisabled?: boolean;
   handleConfirm: ISignMessageConfirmViewPropsHandleConfirm;
-  children?: React.ReactElement;
+  children?: ReactElement;
 };
 export type IFeeInfoInputProps = {
   networkId: string;
@@ -256,7 +253,7 @@ export type IFeeInfoInputProps = {
   feeInfoPayload: IFeeInfoPayload | null;
   loading?: boolean;
   editable?: boolean;
-  renderChildren: ({ isHovered }: { isHovered: boolean }) => any;
+  renderChildren: ({ isHovered }: { isHovered: boolean }) => JSX.Element | null;
   autoNavigateToEdit?: boolean;
   sendConfirmParams: SendConfirmParams;
 };
@@ -290,7 +287,10 @@ export type BatchSendConfirmShared = {
 export type BatchSendConfirmParams = BatchSendConfirmShared & {
   payload?: SendConfirmPayload;
   payloadInfo?: BatchSendConfirmPayloadInfo;
-  onSuccess?: (txs: ISignedTx[], data?: BatchSendConfirmOnSuccessData) => void;
+  onSuccess?: (
+    txs: ISignedTxPro[],
+    data?: BatchSendConfirmOnSuccessData,
+  ) => void;
   onFail?: (error: Error) => void;
   sourceInfo?: IDappSourceInfo;
   backRouteName?: keyof SendRoutesParams;
@@ -352,7 +352,7 @@ export type BatchSendProgressParams = Omit<
 };
 
 export type BatchSendConfirmOnSuccessData = {
-  signedTxs?: ISignedTx[];
+  signedTxs?: ISignedTxPro[];
   encodedTxs?: IEncodedTx[];
   decodedTxs?: IDecodedTx[];
 };

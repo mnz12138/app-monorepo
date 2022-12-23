@@ -1,14 +1,16 @@
 import { ed25519 } from '@onekeyfe/blockchain-libs/dist/secret/curves';
 import { PublicKey } from '@solana/web3.js';
 
-import { COINTYPE_SOL as COIN_TYPE } from '../../../constants';
+import { COINTYPE_SOL as COIN_TYPE } from '@onekeyhq/shared/src/engine/engineConsts';
+
 import { OneKeyInternalError } from '../../../errors';
 import { Signer } from '../../../proxy';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringImportedBase } from '../../keyring/KeyringImportedBase';
 
 import { signMessage, signTransaction } from './utils';
 
+import type { DBSimpleAccount } from '../../../types/account';
 import type {
   IPrepareImportedAccountsParams,
   ISignCredentialOptions,

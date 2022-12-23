@@ -1,25 +1,29 @@
-import React, { useCallback, useState } from 'react';
+import type { FC, ReactNode } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Box, Spinner, useIsVerticalLayout } from '@onekeyhq/components';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import useFormatDate from '../../hooks/useFormatDate';
 
-import { MarketApiData, OnHoverFunction } from './chartService';
 import ChartView from './ChartView';
 import SvgNoPriceData from './NoPriceData';
 import PriceLabel from './PriceLabel';
 
+import type { MarketApiData, OnHoverFunction } from './chartService';
+
 type ChartWithLabelProps = {
   data: MarketApiData[] | null;
-  children: React.ReactNode;
+  children: ReactNode;
   isFetching: boolean;
+  simpleMode?: boolean;
 };
 
-const ChartWithLabel: React.FC<ChartWithLabelProps> = ({
+const ChartWithLabel: FC<ChartWithLabelProps> = ({
   data,
   isFetching,
   children,
+  simpleMode,
 }) => {
   const { formatDate } = useFormatDate();
   const [price, setPrice] = useState<string | number | undefined>();
@@ -56,7 +60,12 @@ const ChartWithLabel: React.FC<ChartWithLabelProps> = ({
     [formatDate],
   );
   const priceLabel = (
-    <PriceLabel price={currentPrice} time={time} basePrice={basePrice} />
+    <PriceLabel
+      price={currentPrice}
+      time={time}
+      basePrice={basePrice}
+      simpleMode={simpleMode}
+    />
   );
   const chartView = data ? (
     <ChartView

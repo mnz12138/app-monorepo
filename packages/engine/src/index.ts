@@ -10,52 +10,34 @@ import {
   decrypt,
   encrypt,
 } from '@onekeyfe/blockchain-libs/dist/secret/encryptors/aes256';
-import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
-import * as algosdk from 'algosdk';
 import BigNumber from 'bignumber.js';
 import * as bip39 from 'bip39';
-import { baseDecode } from 'borsh';
-import bs58 from 'bs58';
-import bs58check from 'bs58check';
 import { cloneDeep, isEmpty, uniq, uniqBy } from 'lodash';
 import memoizee from 'memoizee';
 import natsort from 'natsort';
 
+import type { TokenChartData } from '@onekeyhq/kit/src/store/reducers/tokens';
+import { generateUUID } from '@onekeyhq/kit/src/utils/helper';
+import type { SendConfirmPayload } from '@onekeyhq/kit/src/views/Send/types';
 import {
   backgroundClass,
   backgroundMethod,
-} from '@onekeyhq/kit/src/background/decorators';
-import { TokenChartData } from '@onekeyhq/kit/src/store/reducers/tokens';
-import { Avatar } from '@onekeyhq/kit/src/utils/emojiUtils';
-import { getDeviceType, getDeviceUUID } from '@onekeyhq/kit/src/utils/hardware';
-import { generateUUID } from '@onekeyhq/kit/src/utils/helper';
-import { SendConfirmPayload } from '@onekeyhq/kit/src/views/Send/types';
+} from '@onekeyhq/shared/src/background/backgroundDecorators';
+import { OnekeyNetwork } from '@onekeyhq/shared/src/config/networkIds';
+import { CoreSDKLoader } from '@onekeyhq/shared/src/device/hardwareInstance';
+import type { Avatar } from '@onekeyhq/shared/src/emojiUtils';
+import {
+  COINTYPE_BTC,
+  IMPL_EVM,
+  getSupportedImpls,
+} from '@onekeyhq/shared/src/engine/engineConsts';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
-import { IOneKeyDeviceFeatures } from '@onekeyhq/shared/types';
+import platformEnv from '@onekeyhq/shared/src/platformEnv';
+import type { IOneKeyDeviceFeatures } from '@onekeyhq/shared/types';
 
 import { balanceSupprtedNetwork, getBalancesFromApi } from './apiProxyUtils';
-import {
-  COINTYPE_ADA,
-  COINTYPE_BTC,
-  IMPL_ADA,
-  IMPL_ALGO,
-  IMPL_BCH,
-  IMPL_BTC,
-  IMPL_DOGE,
-  IMPL_EVM,
-  IMPL_LTC,
-  IMPL_NEAR,
-  IMPL_SOL,
-  IMPL_TBTC,
-  getSupportedImpls,
-} from './constants';
 import { DbApi } from './dbs';
-import {
-  DBAPI,
-  DEFAULT_VERIFY_STRING,
-  ExportedSeedCredential,
-  checkPassword,
-} from './dbs/base';
+import { DEFAULT_VERIFY_STRING, checkPassword } from './dbs/base';
 import simpleDb from './dbs/simple/simpleDb';
 import {
   AccountAlreadyExists,
@@ -93,70 +75,82 @@ import {
 import { walletCanBeRemoved, walletIsHD } from './managers/wallet';
 import { getPresetNetworks, networkIsPreset } from './presets';
 import { syncLatestNetworkList } from './presets/network';
-import { OnekeyNetwork } from './presets/networkIds';
-import { ChartQueryParams, PriceController } from './priceController';
+import { PriceController } from './priceController';
 import { ProviderController, fromDBNetworkToChainInfo } from './proxy';
-import {
-  Account,
-  AccountType,
-  DBAccount,
-  DBUTXOAccount,
-  DBVariantAccount,
-  ImportableHDAccount,
-} from './types/account';
+import { AccountType } from './types/account';
 import { CredentialType } from './types/credential';
-import { DevicePayload } from './types/device';
 import { GoPlusSupportApis } from './types/goplus';
-import {
-  HistoryEntry,
-  HistoryEntryMeta,
-  HistoryEntryStatus,
-  HistoryEntryTransaction,
-  HistoryEntryType,
-} from './types/history';
-import {
-  AddNetworkParams,
-  DBNetwork,
-  EIP1559Fee,
-  Network,
-  UpdateNetworkParams,
-} from './types/network';
-import { Token } from './types/token';
+import { HistoryEntryStatus } from './types/history';
 import {
   WALLET_TYPE_EXTERNAL,
   WALLET_TYPE_HD,
   WALLET_TYPE_HW,
   WALLET_TYPE_IMPORTED,
   WALLET_TYPE_WATCHING,
-  Wallet,
 } from './types/wallet';
 import { Validators } from './validators';
-import { createVaultHelperInstance } from './vaults/factory';
-import { decodePrivateKeyByXprv } from './vaults/impl/ada/helper/bip32';
-import { getMergedTxs } from './vaults/impl/evm/decoder/history';
-import { IEncodedTxEvm, IUnsignedMessageEvm } from './vaults/impl/evm/Vault';
 import {
+  createVaultHelperInstance,
+  createVaultSettings,
+} from './vaults/factory';
+import { getMergedTxs } from './vaults/impl/evm/decoder/history';
+import { IDecodedTxActionType } from './vaults/types';
+import { VaultFactory } from './vaults/VaultFactory';
+
+import type { DBAPI, ExportedSeedCredential } from './dbs/base';
+import type { ChartQueryParams } from './priceController';
+import type {
+  Account,
+  DBAccount,
+  DBUTXOAccount,
+  DBVariantAccount,
+  ImportableHDAccount,
+} from './types/account';
+import type { BackupObject, ImportableHDWallet } from './types/backup';
+import type { DevicePayload } from './types/device';
+import type {
+  HistoryEntry,
+  HistoryEntryMeta,
+  HistoryEntryTransaction,
+  HistoryEntryType,
+} from './types/history';
+import type {
+  AddNetworkParams,
+  DBNetwork,
+  EIP1559Fee,
+  Network,
+  UpdateNetworkParams,
+} from './types/network';
+import type { Token } from './types/token';
+import type { Wallet } from './types/wallet';
+import type {
+  IEncodedTxEvm,
+  IUnsignedMessageEvm,
+} from './vaults/impl/evm/Vault';
+import type VaultEvm from './vaults/impl/evm/Vault';
+import type VaultSol from './vaults/impl/sol/Vault';
+import type {
   IDecodedTx,
   IDecodedTxAction,
-  IDecodedTxActionType,
   IDecodedTxInteractInfo,
   IDecodedTxLegacy,
   IEncodedTx,
   IEncodedTxUpdateOptions,
   IFeeInfoUnit,
   ISetApprovalForAll,
+  ITransferInfo,
   IVaultSettings,
 } from './vaults/types';
-import { VaultFactory } from './vaults/VaultFactory';
-
-import type { BackupObject, ImportableHDWallet } from './types/backup';
-import type VaultEvm from './vaults/impl/evm/Vault';
-import type VaultSol from './vaults/impl/sol/Vault';
-import type { ITransferInfo } from './vaults/types';
+import type { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 
 const updateTokenCache: {
   [networkId: string]: boolean;
 } = {};
+
+if (platformEnv.isExtensionUi) {
+  debugger;
+  throw new Error('engine/index is not allowed imported from ui');
+}
 
 @backgroundClass()
 class Engine {
@@ -509,6 +503,7 @@ class Engine {
     if (id.length === 0) {
       throw new OneKeyInternalError('Bad device identity.');
     }
+    const { getDeviceType, getDeviceUUID } = await CoreSDKLoader();
     const deviceId = features.device_id ?? '';
     const deviceType = getDeviceType(features);
     const deviceUUID = getDeviceUUID(features);
@@ -771,6 +766,7 @@ class Engine {
       '144': OnekeyNetwork.xrp,
       '118': OnekeyNetwork.cosmoshub,
       '1815': OnekeyNetwork.ada,
+      '461': OnekeyNetwork.fil,
     }[coinType];
     if (typeof networkId === 'undefined') {
       throw new NotImplemented('Unsupported network.');
@@ -956,10 +952,7 @@ class Engine {
         if (a.type === AccountType.VARIANT) {
           let address = (a as DBVariantAccount).addresses[networkId];
           if (!address) {
-            address = await this.providerManager.addressFromBase(
-              networkId,
-              a.address,
-            );
+            address = await vault.addressFromBase(a.address);
           }
           return address;
         }
@@ -976,10 +969,7 @@ class Engine {
         if (a.type === AccountType.VARIANT) {
           let address = (a as DBVariantAccount).addresses[networkId];
           if (!address) {
-            address = await this.providerManager.addressFromBase(
-              networkId,
-              a.address,
-            );
+            address = await vault.addressFromBase(a.address);
           }
           return { address };
         }
@@ -1079,47 +1069,10 @@ class Engine {
     name?: string,
   ): Promise<Account> {
     await this.validator.validatePasswordStrength(password);
-    const { impl } = parseNetworkId(networkId);
+    const vault = await this.getWalletOnlyVault(networkId, 'imported');
     let privateKey: Buffer | undefined;
-    // TODO: use vault to extract private key.
     try {
-      switch (impl) {
-        case IMPL_BTC:
-        case IMPL_TBTC:
-        case IMPL_DOGE:
-        case IMPL_LTC:
-        case IMPL_BCH:
-          privateKey = bs58check.decode(credential);
-          break;
-        case IMPL_NEAR: {
-          const [prefix, encoded] = credential.split(':');
-          const decodedPrivateKey = Buffer.from(baseDecode(encoded));
-          if (prefix === 'ed25519' && decodedPrivateKey.length === 64) {
-            privateKey = decodedPrivateKey.slice(0, 32);
-          }
-          break;
-        }
-        case IMPL_SOL: {
-          const decodedPrivateKey = bs58.decode(credential);
-          if (decodedPrivateKey.length === 64) {
-            privateKey = decodedPrivateKey.slice(0, 32);
-          }
-          break;
-        }
-        case IMPL_ALGO: {
-          privateKey = Buffer.from(algosdk.seedFromMnemonic(credential));
-          break;
-        }
-        case IMPL_ADA: {
-          privateKey = decodePrivateKeyByXprv(credential);
-          break;
-        }
-        default:
-          privateKey = Buffer.from(
-            credential.startsWith('0x') ? credential.slice(2) : credential,
-            'hex',
-          );
-      }
+      privateKey = vault.getPrivateKeyByCredential(credential);
     } catch (e) {
       console.error(e);
     }
@@ -1128,7 +1081,6 @@ class Engine {
     }
 
     const encryptedPrivateKey = encrypt(password, privateKey);
-    const vault = await this.getWalletOnlyVault(networkId, 'imported');
     const [dbAccount] = await vault.keyring.prepareAccounts({
       privateKey,
       name: name || '',
@@ -1746,6 +1698,49 @@ class Engine {
   }
 
   @backgroundMethod()
+  async batchTokensAllowance({
+    networkId,
+    accountId,
+    tokenIdOnNetwork,
+    spenders,
+  }: {
+    networkId: string;
+    accountId: string;
+    tokenIdOnNetwork: string;
+    spenders: string[];
+  }): Promise<number[] | undefined> {
+    // TODO: move this into vaults to support multichain
+    try {
+      if (!isAccountCompatibleWithNetwork(accountId, networkId)) {
+        // Bad request, shouldn't happen.
+        return;
+      }
+      const spenderAddresses: string[] = [];
+      const tokenAddress = await this.validator.validateTokenAddress(
+        networkId,
+        tokenIdOnNetwork,
+      );
+      for (let i = 0; i < spenders.length; i += 1) {
+        const spender = spenders[i];
+        const address = await this.validator.validateAddress(
+          networkId,
+          spender,
+        );
+        spenderAddresses.push(address);
+      }
+
+      const vault = await this.getVault({ accountId, networkId });
+      const result = await vault.batchTokensAllowance(
+        tokenAddress,
+        spenderAddresses,
+      );
+      return result;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  @backgroundMethod()
   async signMessage({
     unsignedMessage,
     password,
@@ -2050,10 +2045,8 @@ class Engine {
   }
 
   _getVaultSettings = memoizee(
-    async (networkId: string) => {
-      const vault = await this.getChainOnlyVault(networkId);
-      return vault.settings;
-    },
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async (networkId: string) => createVaultSettings({ networkId }),
     {
       promise: true,
       primitive: true,
@@ -2096,7 +2089,7 @@ class Engine {
       let rawTxPreDecoded: string | undefined;
 
       try {
-        const vaultHelper = createVaultHelperInstance({
+        const vaultHelper = await createVaultHelperInstance({
           networkId,
           accountId,
         });
@@ -2464,6 +2457,7 @@ class Engine {
     return vault.proxyJsonRPCCall(request);
   }
 
+  // This method has been deprecated using getSimplePrice in ServicePrice
   @backgroundMethod()
   async getPricesAndCharts(
     networkId: string,
@@ -2471,6 +2465,9 @@ class Engine {
     withMain = true,
     vsCurrency?: string,
   ): Promise<[Record<string, BigNumber>, Record<string, TokenChartData>]> {
+    debugLogger.engine.warn(
+      'This method getPricesAndCharts has been deprecated using getSimplePrice in ServicePrice',
+    );
     // Get price info
     const [prices, charts] = await this.priceManager.getPricesAndCharts(
       networkId,
@@ -2497,7 +2494,7 @@ class Engine {
   @backgroundMethod()
   async listFiats(): Promise<Record<string, string>> {
     const ret: Record<string, string> = {};
-    const fiatSymbolList = new Set(['usd', 'cny', 'jpy', 'hkd']);
+    const fiatSymbolList = ['usd', 'cny', 'jpy', 'hkd', 'btc'];
     try {
       const fiats = await this.priceManager.getFiats(fiatSymbolList);
       Object.keys(fiats).forEach((f) => {
@@ -2506,7 +2503,7 @@ class Engine {
       return ret;
     } catch (e) {
       // 获取出错，返回空的列表
-      return Array.from(fiatSymbolList).reduce(
+      return fiatSymbolList.reduce(
         (memo, current) => ({ ...memo, [current]: undefined }),
         {},
       );

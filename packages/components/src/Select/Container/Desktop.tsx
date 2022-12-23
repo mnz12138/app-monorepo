@@ -1,4 +1,4 @@
-import React, { isValidElement, useRef } from 'react';
+import { isValidElement, useRef } from 'react';
 
 import Box from '../../Box';
 import Button from '../../Button';
@@ -38,6 +38,7 @@ function Desktop<T>({
   setPositionOnlyMounted,
   positionTranslateY = 2,
   autoAdjustPosition,
+  outerContainerRef,
 }: ChildProps<T>) {
   const translateY = positionTranslateY;
 
@@ -52,6 +53,7 @@ function Desktop<T>({
       setPositionOnlyMounted,
       dropdownProps,
       autoAdjust: autoAdjustPosition,
+      outerContainerRef,
     });
 
   const content = (
@@ -83,27 +85,25 @@ function Desktop<T>({
         {...dropdownProps}
       >
         {headerShown ? (
-          <>
-            <Box
-              p="2"
-              pl="3"
-              display="flex"
-              flexDirection="row"
-              justifyContent="space-between"
-              alignItems="center"
-              borderBottomWidth={title ? 1 : undefined}
-              borderBottomColor="border-subdued"
-            >
-              <Typography.Body2Strong>{title}</Typography.Body2Strong>
-              <IconButton
-                name="XMarkMini"
-                type="plain"
-                size="xs"
-                onPress={toggleVisible}
-                circle
-              />
-            </Box>
-          </>
+          <Box
+            p="2"
+            pl="3"
+            display="flex"
+            flexDirection="row"
+            justifyContent="space-between"
+            alignItems="center"
+            borderBottomWidth={title ? 1 : undefined}
+            borderBottomColor="border-subdued"
+          >
+            <Typography.Body2Strong>{title}</Typography.Body2Strong>
+            <IconButton
+              name="XMarkMini"
+              type="plain"
+              size="xs"
+              onPress={toggleVisible}
+              circle
+            />
+          </Box>
         ) : null}
         <ScrollView p="1" flex="1">
           {renderOptions<T>({

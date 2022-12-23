@@ -1,10 +1,10 @@
-import { FC } from 'react';
+import type { FC } from 'react';
 
 import { useIntl } from 'react-intl';
 
 import { Box, HStack, Typography } from '@onekeyhq/components';
-import { LocaleIds } from '@onekeyhq/components/src/locale';
-import { GoPlusAddressSecurity } from '@onekeyhq/engine/src/types/goplus';
+import type { LocaleIds } from '@onekeyhq/components/src/locale';
+import type { GoPlusAddressSecurity } from '@onekeyhq/engine/src/types/goplus';
 
 // @ts-ignore
 const localeMaps: Record<keyof GoPlusAddressSecurity, LocaleIds> = {

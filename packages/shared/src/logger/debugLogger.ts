@@ -10,9 +10,6 @@ import {
 // eslint-disable-next-line import/order
 import { stringify } from 'circular-json';
 
-import type { OneKeyError } from '@onekeyhq/engine/src/errors';
-import backgroundApiProxy from '@onekeyhq/kit/src/background/instance/backgroundApiProxy';
-
 import platformEnv from '../platformEnv';
 import { toPlainErrorObject } from '../sharedUtils';
 import appStorage from '../storage/appStorage';
@@ -28,7 +25,7 @@ type IConsoleFuncProps = {
 function stringifyLog(...args: any[]) {
   const argsNew = args.map((arg) => {
     if (arg instanceof Error) {
-      const error = toPlainErrorObject(arg as OneKeyError);
+      const error = toPlainErrorObject(arg as any);
       delete error.stack;
       return error;
     }
@@ -39,6 +36,9 @@ function stringifyLog(...args: any[]) {
 }
 
 function logToConsole(props: IConsoleFuncProps) {
+  if (platformEnv.isJest) {
+    return;
+  }
   if (platformEnv.isDev) {
     const prefix = `${[
       fnsFormat(new Date(), 'HH:mm:ss.SSS'),
@@ -48,8 +48,8 @@ function logToConsole(props: IConsoleFuncProps) {
       .filter(Boolean)
       .join(' | ')} : `;
     let logContent = [prefix];
-    if (props?.rawMsg && isArray(props?.rawMsg)) {
-      logContent = [...logContent, ...props?.rawMsg];
+    if (props?.rawMsg && isArray(props.rawMsg)) {
+      logContent = [...logContent, ...props.rawMsg];
     }
     if (props?.level?.text === 'error') {
       console.error(...logContent);
@@ -63,8 +63,10 @@ const LOCAL_WEB_LIKE_TRANSPORT_CONFIG = {
   transport: [consoleTransport],
   transportOptions: {
     consoleFunc: (msg: string, props: IConsoleFuncProps) => {
-      backgroundApiProxy.serviceApp.addLogger(`${msg}\r\n`);
       logToConsole(props);
+      if (global.$backgroundApiProxy) {
+        global.$backgroundApiProxy?.serviceApp?.addLogger?.(`${msg}\r\n`);
+      }
     },
   },
 };
@@ -79,8 +81,10 @@ const NATIVE_TRANSPORT_CONFIG = {
     filePath: FileSystem.cacheDirectory,
     consoleFunc: (msg: string, props: IConsoleFuncProps) => {
       if (platformEnv.isDev) {
-        backgroundApiProxy.serviceApp.addLogger(`${msg}\r\n`);
         logToConsole(props);
+        if (global.$backgroundApiProxy) {
+          global.$backgroundApiProxy?.serviceApp?.addLogger?.(`${msg}\r\n`);
+        }
       }
     },
   },
@@ -198,7 +202,8 @@ if (platformEnv.isNative) {
 
 const DEBUG_LOGGER_STORAGE_KEY = '$$ONEKEY_DEBUG_LOGGER';
 
-const shouldUseLocalStorage = platformEnv.isDesktop || platformEnv.isWeb;
+const shouldUseLocalStorage =
+  platformEnv.isDesktop || platformEnv.isWeb || platformEnv.isJest;
 
 async function getDebugLoggerSettings(): Promise<string | undefined | null> {
   if (shouldUseLocalStorage) {
@@ -208,6 +213,9 @@ async function getDebugLoggerSettings(): Promise<string | undefined | null> {
 }
 
 async function loadDebugLoggerSettings() {
+  if (platformEnv.isJest) {
+    return;
+  }
   const enabledKeysStr = await getDebugLoggerSettings();
   let enabledKeys: string[] = [];
   if (isNil(enabledKeysStr)) {
@@ -229,6 +237,9 @@ async function loadDebugLoggerSettings() {
 }
 
 async function saveDebugLoggerSettings() {
+  if (platformEnv.isJest) {
+    return;
+  }
   const enabledKeys: string[] = (logger._enabledExtensions as any) || [];
   const enabledKeysStr = enabledKeys.join(',');
   if (shouldUseLocalStorage) {
@@ -238,7 +249,7 @@ async function saveDebugLoggerSettings() {
   }
 }
 
-if (platformEnv.isDev) {
+if (platformEnv.isDev && !platformEnv.isJest) {
   loadDebugLoggerSettings().then(() => saveDebugLoggerSettings());
 }
 

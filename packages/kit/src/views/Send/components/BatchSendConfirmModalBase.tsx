@@ -1,21 +1,22 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import BigNumber from 'bignumber.js';
 import { toLower } from 'lodash';
 import { useIntl } from 'react-intl';
 
 import { Box, Text } from '@onekeyhq/components';
-import { IMPL_EVM } from '@onekeyhq/engine/src/constants';
-import { isWatchingAccount } from '@onekeyhq/engine/src/engineUtils';
-import { IEncodedTxEvm } from '@onekeyhq/engine/src/vaults/impl/evm/Vault';
+import type { IEncodedTxEvm } from '@onekeyhq/engine/src/vaults/impl/evm/Vault';
+import { IMPL_EVM } from '@onekeyhq/shared/src/engine/engineConsts';
+import { isWatchingAccount } from '@onekeyhq/shared/src/engine/engineUtils';
 import platformEnv from '@onekeyhq/shared/src/platformEnv';
 
 import { useActiveSideAccount, useManageTokensOfAccount } from '../../../hooks';
-import { IBatchTxsConfirmViewProps } from '../types';
 
 import { BaseSendModal } from './BaseSendModal';
 import { SendConfirmErrorBoundary } from './SendConfirmErrorBoundary';
 import { SendConfirmErrorsAlert } from './SendConfirmErrorsAlert';
+
+import type { IBatchTxsConfirmViewProps } from '../types';
 
 function BatchSendConfirmModalBase(props: IBatchTxsConfirmViewProps) {
   const {

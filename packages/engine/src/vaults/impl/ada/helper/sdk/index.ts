@@ -1,4 +1,4 @@
-const LibLoader = async () => import('cardano-coin-selection');
+import { LibLoader } from './loader';
 
 const getCardanoApi = async () => {
   const Loader = await LibLoader();
@@ -6,6 +6,7 @@ const getCardanoApi = async () => {
     composeTxPlan: Loader.onekeyUtils.composeTxPlan,
     signTransaction: Loader.onekeyUtils.signTransaction,
     hwSignTransaction: Loader.trezorUtils.signTransaction,
+    dAppUtils: Loader.dAppUtils,
   };
 };
 

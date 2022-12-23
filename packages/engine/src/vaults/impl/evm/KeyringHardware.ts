@@ -1,26 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ethers } from '@onekeyfe/blockchain-libs';
-import {
-  SignedTx,
-  UnsignedTx,
-} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
-import { deviceUtils } from '@onekeyhq/kit/src/utils/hardware';
+import { convertDeviceError } from '@onekeyhq/shared/src/device/deviceErrorUtils';
+import {
+  COINTYPE_ETH as COIN_TYPE,
+  IMPL_EVM,
+} from '@onekeyhq/shared/src/engine/engineConsts';
+import * as engineUtils from '@onekeyhq/shared/src/engine/engineUtils';
 import debugLogger from '@onekeyhq/shared/src/logger/debugLogger';
 
-import { COINTYPE_ETH as COIN_TYPE, IMPL_EVM } from '../../../constants';
-import * as engineUtils from '../../../engineUtils';
 import { OneKeyHardwareError } from '../../../errors';
 import * as OneKeyHardware from '../../../hardware';
-import { AccountType, DBSimpleAccount } from '../../../types/account';
+import { AccountType } from '../../../types/account';
 import { KeyringHardwareBase } from '../../keyring/KeyringHardwareBase';
-import {
+
+import type { DBSimpleAccount } from '../../../types/account';
+import type {
   IGetAddressParams,
   IPrepareHardwareAccountsParams,
   ISignCredentialOptions,
 } from '../../types';
-
 import type { IUnsignedMessageEvm } from './Vault';
+import type {
+  SignedTx,
+  UnsignedTx,
+} from '@onekeyfe/blockchain-libs/dist/types/provider';
 
 const PATH_PREFIX = `m/44'/${COIN_TYPE}'/0'/0`;
 
@@ -90,7 +94,7 @@ export class KeyringHardware extends KeyringHardwareBase {
       }
 
       if (!response.success) {
-        throw deviceUtils.convertDeviceError(response.payload);
+        throw convertDeviceError(response.payload);
       }
       const { xpub } = response.payload;
       const node = ethers.utils.HDNode.fromExtendedKey(xpub);

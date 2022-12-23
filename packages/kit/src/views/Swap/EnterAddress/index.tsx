@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
 
 import { Form, Modal, useForm, useToast } from '@onekeyhq/components';
@@ -11,7 +11,9 @@ import NameServiceResolver, {
 import backgroundApiProxy from '../../../background/instance/backgroundApiProxy';
 import AddressInput from '../../../components/AddressInput';
 import { useDebounce } from '../../../hooks';
-import { SwapRoutes, SwapRoutesParams } from '../typings';
+
+import type { SwapRoutes, SwapRoutesParams } from '../typings';
+import type { RouteProp } from '@react-navigation/native';
 
 type RouteProps = RouteProp<SwapRoutesParams, SwapRoutes.EnterAddress>;
 
@@ -103,6 +105,17 @@ const EnterAddress = () => {
     [onNameServiceStatusChange],
   );
 
+  const helpText = useCallback(
+    (value: string) => (
+      <NameServiceResolver
+        name={value}
+        onChange={syncStateAndReTriggerValidate}
+        networkId={networkId}
+      />
+    ),
+    [networkId, syncStateAndReTriggerValidate],
+  );
+
   return (
     <Modal
       header={intl.formatMessage({ id: 'form__enter_address' })}
@@ -130,13 +143,7 @@ const EnterAddress = () => {
             }),
           },
         }}
-        helpText={(value) => (
-          <NameServiceResolver
-            name={value}
-            onChange={syncStateAndReTriggerValidate}
-            networkId={networkId}
-          />
-        )}
+        helpText={helpText}
       >
         <AddressInput
           networkId={networkId}
